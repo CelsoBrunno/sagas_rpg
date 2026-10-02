@@ -12,8 +12,8 @@ class NPC:
         """Cria um novo NPC"""
         query = """
             INSERT INTO npcs 
-            (nome, status, descricao_breve, descricao_completa, imagem_url, local_atual_id, ficha_personagem_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            (nome, status, descricao_breve, descricao_completa, imagem_url, local_atual_id, ficha_personagem_id, id_campanha)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         params = (
             dados.get('nome'),
@@ -22,7 +22,8 @@ class NPC:
             dados.get('descricao_completa'),
             dados.get('imagem_url'),
             dados.get('local_atual_id'),
-            dados.get('ficha_personagem_id')
+            dados.get('ficha_personagem_id'),
+            dados.get('id_campanha')
         )
         return Database.execute_query(query, params, fetch=False)
     
@@ -39,6 +40,21 @@ class NPC:
             ORDER BY npcs.nome
         """
         return Database.execute_query(query)
+    
+    @staticmethod
+    def listar_por_campanha(campanha_id):
+        """Lista os NPCs de uma campanha"""
+        query = """
+            SELECT npcs.*, 
+                   locais.nome as local_nome,
+                   personagens.nome as personagem_nome
+            FROM npcs
+            LEFT JOIN locais ON npcs.local_atual_id = locais.id
+            LEFT JOIN personagens ON npcs.ficha_personagem_id = personagens.id
+            WHERE npcs.id_campanha = %s
+            ORDER BY npcs.nome
+        """
+        return Database.execute_query(query, (campanha_id,))
     
     @staticmethod
     def listar_por_local(local_id):
@@ -115,15 +131,19 @@ class NPC:
         Database.execute_query(query, (npc_id,), fetch=False)
     
     @staticmethod
-    def buscar(termo):
-        """Busca NPCs por termo"""
+    def buscar(termo, campanha_id=None):
+        """Busca NPCs por termo, limitada à campanha quando informada"""
         query = """
             SELECT npcs.*, locais.nome as local_nome
             FROM npcs
             LEFT JOIN locais ON npcs.local_atual_id = locais.id
-            WHERE npcs.nome LIKE %s OR npcs.descricao_breve LIKE %s
-            ORDER BY npcs.nome
+            WHERE (npcs.nome LIKE %s OR npcs.descricao_breve LIKE %s)
         """
         termo_like = f"%{termo}%"
-        return Database.execute_query(query, (termo_like, termo_like))
+        params = [termo_like, termo_like]
+        if campanha_id:
+            query += " AND npcs.id_campanha = %s"
+            params.append(campanha_id)
+        query += " ORDER BY npcs.nome"
+        return Database.execute_query(query, tuple(params))
 

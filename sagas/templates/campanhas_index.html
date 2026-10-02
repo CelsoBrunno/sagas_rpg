@@ -47,7 +47,15 @@
         </div>
         <div class="card-body">
           <p><strong>Personagens:</strong> {{ c.total_personagens or 0 }}</p>
-          <a class="btn-primary" href="{{ url_for('ver_campanha', id=c.id) }}">Gerenciar</a>
+          {% if c.descricao %}
+            <p>{{ c.descricao }}</p>
+          {% endif %}
+          <form method="POST" action="{{ url_for('entrar_campanha', id=c.id) }}" style="margin-bottom: 0.5rem;">
+            <button class="btn-primary" type="submit">
+              {% if campanha_ativa and campanha_ativa.id == c.id %}Você está nesta campanha{% else %}Entrar{% endif %}
+            </button>
+          </form>
+          <a class="btn-secondary" href="{{ url_for('ver_campanha', id=c.id) }}">Gerenciar</a>
         </div>
       </div>
     </div>

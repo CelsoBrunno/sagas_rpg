@@ -42,6 +42,13 @@
                     </li>
                 {% endif %}
                 
+                {% if session.get('user_id') %}
+                <li class="nav-item">
+                    <a href="{{ url_for('listar_campanhas') }}" class="nav-link nav-campanha">
+                        {% if campanha_ativa %}Campanha: {{ campanha_ativa.nome_campanha }}{% else %}Escolher campanha{% endif %}
+                    </a>
+                </li>
+                {% endif %}
                 <li class="nav-item"><a href="{{ url_for('index') }}" class="nav-link">Personagens</a></li>
                 <li class="nav-item"><a href="{{ url_for('listar_locais') }}" class="nav-link">Locais</a></li>
                 <li class="nav-item"><a href="{{ url_for('listar_npcs') }}" class="nav-link">NPCs</a></li>

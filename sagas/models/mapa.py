@@ -12,15 +12,16 @@ class Mapa:
         """Cria um novo mapa"""
         query = """
             INSERT INTO mapas 
-            (nome_mapa, url_imagem, tipo_mapa, descricao, local_associado_id)
-            VALUES (%s, %s, %s, %s, %s)
+            (nome_mapa, url_imagem, tipo_mapa, descricao, local_associado_id, id_campanha)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """
         params = (
             dados.get('nome_mapa'),
             dados.get('url_imagem'),
             dados.get('tipo_mapa'),
             dados.get('descricao'),
-            dados.get('local_associado_id')
+            dados.get('local_associado_id'),
+            dados.get('id_campanha')
         )
         return Database.execute_query(query, params, fetch=False)
     
@@ -35,6 +36,19 @@ class Mapa:
             ORDER BY mapas.nome_mapa
         """
         return Database.execute_query(query)
+    
+    @staticmethod
+    def listar_por_campanha(campanha_id):
+        """Lista os mapas de uma campanha"""
+        query = """
+            SELECT mapas.*, 
+                   locais.nome as local_nome
+            FROM mapas
+            LEFT JOIN locais ON mapas.local_associado_id = locais.id
+            WHERE mapas.id_campanha = %s
+            ORDER BY mapas.nome_mapa
+        """
+        return Database.execute_query(query, (campanha_id,))
     
     @staticmethod
     def listar_por_local(local_id):
@@ -107,15 +121,19 @@ class Mapa:
         Database.execute_query(query, (mapa_id,), fetch=False)
     
     @staticmethod
-    def buscar(termo):
-        """Busca mapas por termo"""
+    def buscar(termo, campanha_id=None):
+        """Busca mapas por termo, limitada à campanha quando informada"""
         query = """
             SELECT mapas.*, locais.nome as local_nome
             FROM mapas
             LEFT JOIN locais ON mapas.local_associado_id = locais.id
-            WHERE mapas.nome_mapa LIKE %s OR mapas.descricao LIKE %s
-            ORDER BY mapas.nome_mapa
+            WHERE (mapas.nome_mapa LIKE %s OR mapas.descricao LIKE %s)
         """
         termo_like = f"%{termo}%"
-        return Database.execute_query(query, (termo_like, termo_like))
+        params = [termo_like, termo_like]
+        if campanha_id:
+            query += " AND mapas.id_campanha = %s"
+            params.append(campanha_id)
+        query += " ORDER BY mapas.nome_mapa"
+        return Database.execute_query(query, tuple(params))
 

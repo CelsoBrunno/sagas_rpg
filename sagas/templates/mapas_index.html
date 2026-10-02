@@ -47,9 +47,14 @@
                 </div>
             {% endfor %}
         </div>
+    {% elif sem_campanha %}
+        <div class="card">
+            <p>Escolha uma campanha para ver os mapas dela.</p>
+            <a href="{{ url_for('listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
+        </div>
     {% else %}
         <div class="card">
-            <p>Nenhum mapa cadastrado ainda.</p>
+            <p>Nenhum mapa cadastrado ainda nesta campanha.</p>
         </div>
     {% endif %}
 </div>

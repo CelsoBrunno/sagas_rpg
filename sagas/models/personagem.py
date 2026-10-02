@@ -14,8 +14,8 @@ class Personagem:
         try:
             query = """
                 INSERT INTO personagens 
-                (nome, jogador_nome, raca, categoria, pontos_base, pontos_desvantagens_max, biografia, tipo, status, id_usuario_jogador, raca_id, classe_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (nome, jogador_nome, raca, categoria, pontos_base, pontos_desvantagens_max, biografia, tipo, status, id_usuario_jogador, raca_id, classe_id, id_campanha)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             params = (
                 dados.get('nome'),
@@ -29,15 +29,16 @@ class Personagem:
                 dados.get('status', 'Ativo'),
                 dados.get('id_usuario_jogador'),
                 dados.get('raca_id'),
-                dados.get('classe_id')
+                dados.get('classe_id'),
+                dados.get('id_campanha')
             )
             return Database.execute_query(query, params, fetch=False)
         except:
             # Fallback se categoria não existir
             query = """
                 INSERT INTO personagens 
-                (nome, jogador_nome, raca, pontos_base, pontos_desvantagens_max, biografia, tipo, status, id_usuario_jogador, raca_id, classe_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (nome, jogador_nome, raca, pontos_base, pontos_desvantagens_max, biografia, tipo, status, id_usuario_jogador, raca_id, classe_id, id_campanha)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             params = (
                 dados.get('nome'),
@@ -50,7 +51,8 @@ class Personagem:
                 dados.get('status', 'Ativo'),
                 dados.get('id_usuario_jogador'),
                 dados.get('raca_id'),
-                dados.get('classe_id')
+                dados.get('classe_id'),
+                dados.get('id_campanha')
             )
             return Database.execute_query(query, params, fetch=False)
     
@@ -66,6 +68,20 @@ class Personagem:
             ORDER BY p.nome
         """
         return Database.execute_query(query)
+    
+    @staticmethod
+    def listar_por_campanha(campanha_id):
+        """Lista os personagens de uma campanha."""
+        query = """
+            SELECT p.*,
+                   u.username AS usuario_username,
+                   u.nome_completo AS usuario_nome_completo
+            FROM personagens p
+            LEFT JOIN usuarios u ON u.id = p.id_usuario_jogador
+            WHERE p.id_campanha = %s
+            ORDER BY p.nome
+        """
+        return Database.execute_query(query, (campanha_id,))
     
     @staticmethod
     def buscar_por_id(personagem_id):

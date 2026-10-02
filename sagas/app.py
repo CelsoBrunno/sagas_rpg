@@ -45,8 +45,9 @@ def index():
         flash('Faça login para acessar o sistema.', 'info')
         return redirect(url_for('login'))
     
-    personagens = Personagem.listar_todos()
-    return render_template('index.html', personagens=personagens)
+    campanha = campanha_da_sessao()
+    personagens = Personagem.listar_por_campanha(campanha['id']) if campanha else []
+    return render_template('index.html', personagens=personagens, sem_campanha=campanha is None)
 
 @app.route('/personagem/<int:id>')
 def ver_personagem(id):
@@ -55,6 +56,10 @@ def ver_personagem(id):
     
     if not personagem:
         flash('Personagem não encontrado.', 'danger')
+        return redirect(url_for('index'))
+
+    if personagem.get('id_campanha') and not pertence_a_campanha_ativa(personagem):
+        flash('Esse personagem pertence a outra campanha.', 'danger')
         return redirect(url_for('index'))
     
     pode_equipar = _usuario_pode_gerenciar_personagem(personagem)
@@ -319,6 +324,10 @@ def novo_personagem():
         flash('Apenas administradores podem criar personagens.', 'danger')
         return redirect(url_for('index'))
     
+    campanha = exigir_campanha()
+    if not campanha:
+        return redirect(url_for('listar_campanhas'))
+
     if request.method == 'POST':
         dados = {
             'nome': request.form.get('nome'),
@@ -328,7 +337,8 @@ def novo_personagem():
             'pontos_desvantagens_max': int(request.form.get('pontos_desvantagens_max', 0)),
             'biografia': request.form.get('biografia'),
             'tipo': request.form.get('tipo', 'PJ'),
-            'status': 'Ativo'
+            'status': 'Ativo',
+            'id_campanha': campanha['id']
         }
         
         # Cria o personagem
@@ -352,6 +362,10 @@ def criar_minha_ficha():
     if not verificar_login():
         flash('Você precisa estar logado para criar uma ficha.', 'danger')
         return redirect(url_for('login'))
+
+    campanha = exigir_campanha()
+    if not campanha:
+        return redirect(url_for('listar_campanhas'))
     
     user_id = session.get('user_id')
     usuario = Usuario.buscar_por_id(user_id)
@@ -410,7 +424,8 @@ def criar_minha_ficha():
                 'status': 'Ativo',
                 'id_usuario_jogador': user_id,
                 'raca_id': raca_id_final,
-                'classe_id': classe_id_final
+                'classe_id': classe_id_final,
+                'id_campanha': campanha['id']
             }
             
             # Cria o personagem
@@ -1151,8 +1166,9 @@ def listar_locais():
     if not verificar_login():
         return redirect(url_for('login'))
     
-    locais = Local.listar_todos()
-    return render_template('locais_index.html', locais=locais)
+    campanha = campanha_da_sessao()
+    locais = Local.listar_por_campanha(campanha['id']) if campanha else []
+    return render_template('locais_index.html', locais=locais, sem_campanha=campanha is None)
 
 @app.route('/local/<int:id>')
 def ver_local(id):
@@ -1161,8 +1177,8 @@ def ver_local(id):
         return redirect(url_for('login'))
 
     local = Local.buscar_por_id(id)
-    if not local:
-        flash('Local não encontrado.', 'danger')
+    if not local or not pertence_a_campanha_ativa(local):
+        flash('Local não encontrado nesta campanha.', 'danger')
         return redirect(url_for('listar_locais'))
     
     # Debug: verificar imagem
@@ -1197,6 +1213,10 @@ def novo_local():
     if not verificar_admin():
         flash('Apenas administradores podem criar locais.', 'danger')
         return redirect(url_for('listar_locais'))
+
+    campanha = exigir_campanha()
+    if not campanha:
+        return redirect(url_for('listar_campanhas'))
     
     if request.method == 'POST':
         imagem_url = None
@@ -1218,7 +1238,8 @@ def novo_local():
             'tipo': request.form.get('tipo'),
             'descricao_publica': request.form.get('descricao_publica'),
             'descricao_mestre': request.form.get('descricao_mestre'),
-            'imagem_principal_url': imagem_url
+            'imagem_principal_url': imagem_url,
+            'id_campanha': campanha['id']
         }
         
         if not dados['nome']:
@@ -1242,8 +1263,8 @@ def editar_local(id):
         return redirect(url_for('listar_locais'))
     
     local = Local.buscar_por_id(id)
-    if not local:
-        flash('Local não encontrado.', 'danger')
+    if not local or not pertence_a_campanha_ativa(local):
+        flash('Local não encontrado nesta campanha.', 'danger')
         return redirect(url_for('listar_locais'))
     
     if request.method == 'POST':
@@ -1300,8 +1321,8 @@ def deletar_local(id):
         return redirect(url_for('listar_locais'))
     
     local = Local.buscar_por_id(id)
-    if not local:
-        flash('Local não encontrado.', 'danger')
+    if not local or not pertence_a_campanha_ativa(local):
+        flash('Local não encontrado nesta campanha.', 'danger')
         return redirect(url_for('listar_locais'))
     
     try:
@@ -1332,8 +1353,9 @@ def listar_npcs():
     if not verificar_login():
         return redirect(url_for('login'))
     
-    npcs = NPC.listar_todos()
-    return render_template('npcs_index.html', npcs=npcs)
+    campanha = campanha_da_sessao()
+    npcs = NPC.listar_por_campanha(campanha['id']) if campanha else []
+    return render_template('npcs_index.html', npcs=npcs, sem_campanha=campanha is None)
 
 @app.route('/npc/<int:id>')
 def ver_npc(id):
@@ -1342,8 +1364,8 @@ def ver_npc(id):
         return redirect(url_for('login'))
 
     npc = NPC.buscar_por_id(id)
-    if not npc:
-        flash('NPC não encontrado.', 'danger')
+    if not npc or not pertence_a_campanha_ativa(npc):
+        flash('NPC não encontrado nesta campanha.', 'danger')
         return redirect(url_for('listar_npcs'))
 
     if not verificar_admin():
@@ -1358,6 +1380,10 @@ def novo_npc():
     if not verificar_admin():
         flash('Apenas administradores podem criar NPCs.', 'danger')
         return redirect(url_for('listar_npcs'))
+
+    campanha = exigir_campanha()
+    if not campanha:
+        return redirect(url_for('listar_campanhas'))
     
     if request.method == 'POST':
         imagem_url = None
@@ -1372,8 +1398,8 @@ def novo_npc():
                 imagem_url = f"/static/uploads/{filename}"
             else:
                 flash('Tipo de arquivo inválido. Use PNG, JPG, JPEG, GIF ou WEBP.', 'danger')
-                locais = Local.listar_todos()
-                personagens = Personagem.listar_todos()
+                locais = Local.listar_por_campanha(campanha['id'])
+                personagens = Personagem.listar_por_campanha(campanha['id'])
                 return render_template('npc_novo.html', locais=locais, personagens=personagens)
         
         dados = {
@@ -1383,7 +1409,8 @@ def novo_npc():
             'descricao_completa': request.form.get('descricao_completa'),
             'imagem_url': imagem_url,
             'local_atual_id': request.form.get('local_atual_id') or None,
-            'ficha_personagem_id': request.form.get('ficha_personagem_id') or None
+            'ficha_personagem_id': request.form.get('ficha_personagem_id') or None,
+            'id_campanha': campanha['id']
         }
         
         if dados['local_atual_id']:
@@ -1393,8 +1420,8 @@ def novo_npc():
         
         if not dados['nome']:
             flash('Nome é obrigatório.', 'danger')
-            locais = Local.listar_todos()
-            personagens = Personagem.listar_todos()
+            locais = Local.listar_por_campanha(campanha['id'])
+            personagens = Personagem.listar_por_campanha(campanha['id'])
             return render_template('npc_novo.html', locais=locais, personagens=personagens)
         
         try:
@@ -1404,8 +1431,8 @@ def novo_npc():
         except Exception as e:
             flash(f'Erro ao criar NPC: {str(e)}', 'danger')
     
-    locais = Local.listar_todos()
-    personagens = Personagem.listar_todos()
+    locais = Local.listar_por_campanha(campanha['id'])
+    personagens = Personagem.listar_por_campanha(campanha['id'])
     return render_template('npc_novo.html', locais=locais, personagens=personagens)
 
 @app.route('/npc/<int:id>/editar', methods=['GET', 'POST'])
@@ -1416,9 +1443,11 @@ def editar_npc(id):
         return redirect(url_for('listar_npcs'))
     
     npc = NPC.buscar_por_id(id)
-    if not npc:
-        flash('NPC não encontrado.', 'danger')
+    if not npc or not pertence_a_campanha_ativa(npc):
+        flash('NPC não encontrado nesta campanha.', 'danger')
         return redirect(url_for('listar_npcs'))
+
+    campanha = campanha_da_sessao()
     
     if request.method == 'POST':
         imagem_url = npc.get('imagem_url')  # Mantém a imagem atual por padrão
@@ -1443,8 +1472,8 @@ def editar_npc(id):
                 imagem_url = f"/static/uploads/{filename}"
             else:
                 flash('Tipo de arquivo inválido. Use PNG, JPG, JPEG, GIF ou WEBP.', 'danger')
-                locais = Local.listar_todos()
-                personagens = Personagem.listar_todos()
+                locais = Local.listar_por_campanha(session.get('campanha_id'))
+                personagens = Personagem.listar_por_campanha(session.get('campanha_id'))
                 return render_template('npc_editar.html', npc=npc, locais=locais, personagens=personagens)
         
         dados = {
@@ -1464,8 +1493,8 @@ def editar_npc(id):
         
         if not dados['nome']:
             flash('Nome é obrigatório.', 'danger')
-            locais = Local.listar_todos()
-            personagens = Personagem.listar_todos()
+            locais = Local.listar_por_campanha(session.get('campanha_id'))
+            personagens = Personagem.listar_por_campanha(session.get('campanha_id'))
             return render_template('npc_editar.html', npc=npc, locais=locais, personagens=personagens)
         
         try:
@@ -1475,8 +1504,8 @@ def editar_npc(id):
         except Exception as e:
             flash(f'Erro ao atualizar NPC: {str(e)}', 'danger')
     
-    locais = Local.listar_todos()
-    personagens = Personagem.listar_todos()
+    locais = Local.listar_por_campanha(session.get('campanha_id'))
+    personagens = Personagem.listar_por_campanha(session.get('campanha_id'))
     return render_template('npc_editar.html', npc=npc, locais=locais, personagens=personagens)
 
 @app.route('/npc/<int:id>/deletar', methods=['POST'])
@@ -1487,8 +1516,8 @@ def deletar_npc(id):
         return redirect(url_for('listar_npcs'))
     
     npc = NPC.buscar_por_id(id)
-    if not npc:
-        flash('NPC não encontrado.', 'danger')
+    if not npc or not pertence_a_campanha_ativa(npc):
+        flash('NPC não encontrado nesta campanha.', 'danger')
         return redirect(url_for('listar_npcs'))
     
     try:
@@ -1537,8 +1566,9 @@ def listar_mapas():
     if not verificar_login():
         return redirect(url_for('login'))
     
-    mapas = Mapa.listar_todos()
-    return render_template('mapas_index.html', mapas=mapas)
+    campanha = campanha_da_sessao()
+    mapas = Mapa.listar_por_campanha(campanha['id']) if campanha else []
+    return render_template('mapas_index.html', mapas=mapas, sem_campanha=campanha is None)
 
 @app.route('/mapa/<int:id>')
 def ver_mapa(id):
@@ -1547,8 +1577,8 @@ def ver_mapa(id):
         return redirect(url_for('login'))
 
     mapa = Mapa.buscar_por_id(id)
-    if not mapa:
-        flash('Mapa não encontrado.', 'danger')
+    if not mapa or not pertence_a_campanha_ativa(mapa):
+        flash('Mapa não encontrado nesta campanha.', 'danger')
         return redirect(url_for('listar_mapas'))
     
     return render_template('mapa_detalhe.html', mapa=mapa)
@@ -1559,6 +1589,10 @@ def novo_mapa():
     if not verificar_admin():
         flash('Apenas administradores podem criar mapas.', 'danger')
         return redirect(url_for('listar_mapas'))
+
+    campanha = exigir_campanha()
+    if not campanha:
+        return redirect(url_for('listar_campanhas'))
     
     if request.method == 'POST':
         # Verifica se há upload de arquivo
@@ -1573,11 +1607,11 @@ def novo_mapa():
                 url_imagem = f"/static/uploads/{filename}"
             else:
                 flash('Tipo de arquivo inválido. Use PNG, JPG, JPEG, GIF ou WEBP.', 'danger')
-                locais = Local.listar_todos()
+                locais = Local.listar_por_campanha(session.get('campanha_id'))
                 return render_template('mapa_novo.html', locais=locais)
         else:
             flash('É necessário fazer upload de uma imagem.', 'danger')
-            locais = Local.listar_todos()
+            locais = Local.listar_por_campanha(session.get('campanha_id'))
             return render_template('mapa_novo.html', locais=locais)
         
         dados = {
@@ -1585,7 +1619,8 @@ def novo_mapa():
             'tipo_mapa': request.form.get('tipo_mapa'),
             'descricao': request.form.get('descricao'),
             'local_associado_id': request.form.get('local_associado_id') or None,
-            'url_imagem': url_imagem
+            'url_imagem': url_imagem,
+            'id_campanha': campanha['id']
         }
         
         if dados['local_associado_id']:
@@ -1593,7 +1628,7 @@ def novo_mapa():
         
         if not dados['nome_mapa']:
             flash('Nome do mapa é obrigatório.', 'danger')
-            locais = Local.listar_todos()
+            locais = Local.listar_por_campanha(session.get('campanha_id'))
             return render_template('mapa_novo.html', locais=locais)
         
         try:
@@ -1603,7 +1638,7 @@ def novo_mapa():
         except Exception as e:
             flash(f'Erro ao criar mapa: {str(e)}', 'danger')
     
-    locais = Local.listar_todos()
+    locais = Local.listar_por_campanha(session.get('campanha_id'))
     return render_template('mapa_novo.html', locais=locais)
 
 @app.route('/mapa/<int:id>/editar', methods=['GET', 'POST'])
@@ -1614,8 +1649,8 @@ def editar_mapa(id):
         return redirect(url_for('listar_mapas'))
     
     mapa = Mapa.buscar_por_id(id)
-    if not mapa:
-        flash('Mapa não encontrado.', 'danger')
+    if not mapa or not pertence_a_campanha_ativa(mapa):
+        flash('Mapa não encontrado nesta campanha.', 'danger')
         return redirect(url_for('listar_mapas'))
     
     if request.method == 'POST':
@@ -1641,7 +1676,7 @@ def editar_mapa(id):
                 url_imagem = f"/static/uploads/{filename}"
             else:
                 flash('Tipo de arquivo inválido. Use PNG, JPG, JPEG, GIF ou WEBP.', 'danger')
-                locais = Local.listar_todos()
+                locais = Local.listar_por_campanha(session.get('campanha_id'))
                 return render_template('mapa_editar.html', mapa=mapa, locais=locais)
         
         dados = {
@@ -1657,7 +1692,7 @@ def editar_mapa(id):
         
         if not dados['nome_mapa']:
             flash('Nome do mapa é obrigatório.', 'danger')
-            locais = Local.listar_todos()
+            locais = Local.listar_por_campanha(session.get('campanha_id'))
             return render_template('mapa_editar.html', mapa=mapa, locais=locais)
         
         try:
@@ -1667,7 +1702,7 @@ def editar_mapa(id):
         except Exception as e:
             flash(f'Erro ao atualizar mapa: {str(e)}', 'danger')
     
-    locais = Local.listar_todos()
+    locais = Local.listar_por_campanha(session.get('campanha_id'))
     return render_template('mapa_editar.html', mapa=mapa, locais=locais)
 
 @app.route('/mapa/<int:id>/deletar', methods=['POST'])
@@ -1678,8 +1713,8 @@ def deletar_mapa(id):
         return redirect(url_for('listar_mapas'))
     
     mapa = Mapa.buscar_por_id(id)
-    if not mapa:
-        flash('Mapa não encontrado.', 'danger')
+    if not mapa or not pertence_a_campanha_ativa(mapa):
+        flash('Mapa não encontrado nesta campanha.', 'danger')
         return redirect(url_for('listar_mapas'))
     
     try:
@@ -1714,11 +1749,16 @@ def busca_global():
     
     if not termo:
         return jsonify({'results': []})
+
+    campanha = campanha_da_sessao()
+    if not campanha:
+        return jsonify({'results': []})
+    campanha_id = campanha['id']
     
     resultados = []
     
     # Busca em locais
-    locais = Local.buscar(termo)
+    locais = Local.buscar(termo, campanha_id)
     for local in locais:
         resultados.append({
             'tipo': 'local',
@@ -1728,7 +1768,7 @@ def busca_global():
         })
     
     # Busca em NPCs
-    npcs = NPC.buscar(termo)
+    npcs = NPC.buscar(termo, campanha_id)
     for npc in npcs:
         resultados.append({
             'tipo': 'npc',
@@ -1738,7 +1778,7 @@ def busca_global():
         })
     
     # Busca em mapas
-    mapas = Mapa.buscar(termo)
+    mapas = Mapa.buscar(termo, campanha_id)
     for mapa in mapas:
         resultados.append({
             'tipo': 'mapa',
@@ -1748,9 +1788,9 @@ def busca_global():
         })
     
     # Busca em personagens
-    query_personagens = "SELECT * FROM personagens WHERE nome LIKE %s"
+    query_personagens = "SELECT * FROM personagens WHERE nome LIKE %s AND id_campanha = %s"
     termo_like = f"%{termo}%"
-    personagens = Database.execute_query(query_personagens, (termo_like,))
+    personagens = Database.execute_query(query_personagens, (termo_like, campanha_id))
     for personagem in personagens:
         resultados.append({
             'tipo': 'personagem',
@@ -1782,7 +1822,7 @@ def login():
             Usuario.atualizar_last_login(usuario['id'])
             
             flash(f'Bem-vindo, {usuario["username"]}!', 'success')
-            return redirect(url_for('index'))
+            return redirect(url_for('listar_campanhas'))
         else:
             flash('Usuário ou senha incorretos.', 'danger')
     
@@ -1829,6 +1869,40 @@ def verificar_admin():
 def verificar_login():
     """Verifica se o usuário está logado"""
     return 'user_id' in session
+
+def campanha_da_sessao():
+    """Campanha escolhida nesta sessão, ou None."""
+    campanha_id = session.get('campanha_id')
+    if not campanha_id:
+        return None
+    campanha = Campanha.buscar_por_id(campanha_id)
+    if not campanha:
+        session.pop('campanha_id', None)
+        return None
+    return campanha
+
+def exigir_campanha():
+    """Exige uma campanha escolhida e avisa quando falta."""
+    campanha = campanha_da_sessao()
+    if not campanha:
+        flash('Escolha uma campanha antes de continuar.', 'info')
+    return campanha
+
+def pertence_a_campanha_ativa(registro):
+    """Confere se o registro é da campanha escolhida."""
+    campanha = campanha_da_sessao()
+    if not campanha or not registro:
+        return False
+    try:
+        return int(registro.get('id_campanha') or 0) == int(campanha['id'])
+    except (TypeError, ValueError):
+        return False
+
+@app.context_processor
+def injetar_campanha_ativa():
+    if not session.get('user_id'):
+        return {'campanha_ativa': None}
+    return {'campanha_ativa': campanha_da_sessao()}
 
 def _usuario_pode_gerenciar_personagem(personagem: dict) -> bool:
     if not personagem:
@@ -1901,19 +1975,56 @@ def listar_imagens_entidade(entidade_tipo, entidade_id):
 # Rotas - Campanhas
 # ==========================================
 
-@app.route('/campanhas')
+@app.route('/campanhas', methods=['GET', 'POST'])
 def listar_campanhas():
-    """Lista campanhas do mestre"""
+    """Lista as campanhas e permite entrar em uma delas"""
     if not verificar_login():
         return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        if not verificar_admin():
+            flash('Apenas administradores podem criar campanhas.', 'danger')
+            return redirect(url_for('listar_campanhas'))
+        nome = (request.form.get('nome_campanha') or '').strip()
+        if not nome:
+            flash('Nome da campanha é obrigatório.', 'danger')
+            return redirect(url_for('listar_campanhas'))
+        try:
+            pontos = int(request.form.get('pontos_iniciais') or 150)
+        except (TypeError, ValueError):
+            pontos = 150
+        novo_id = Campanha.criar({
+            'nome_campanha': nome,
+            'id_mestre': session.get('user_id'),
+            'pontos_iniciais': pontos,
+            'descricao': request.form.get('descricao'),
+            'status': 'Ativa',
+        })
+        session['campanha_id'] = novo_id
+        flash(f'Campanha {nome} criada. Você já está nela.', 'success')
+        return redirect(url_for('index'))
     
-    user_id = session.get('user_id')
-    campanhas = Campanha.listar_por_mestre(user_id)
+    campanhas = Campanha.listar_todas()
     return render_template('campanhas_index.html', campanhas=campanhas)
 
-@app.route('/campanha/<int:id>')
+@app.route('/campanha/<int:id>/entrar', methods=['POST'])
+def entrar_campanha(id):
+    """Define a campanha ativa da sessão"""
+    if not verificar_login():
+        return redirect(url_for('login'))
+
+    campanha = Campanha.buscar_por_id(id)
+    if not campanha:
+        flash('Campanha não encontrada.', 'danger')
+        return redirect(url_for('listar_campanhas'))
+
+    session['campanha_id'] = campanha['id']
+    flash(f'Você entrou na campanha {campanha["nome_campanha"]}.', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/campanha/<int:id>', methods=['GET', 'POST'])
 def ver_campanha(id):
-    """Visualiza detalhes de uma campanha"""
+    """Visualiza e atualiza uma campanha"""
     if not verificar_login():
         return redirect(url_for('login'))
     
@@ -1921,6 +2032,43 @@ def ver_campanha(id):
     if not campanha:
         flash('Campanha não encontrada.', 'danger')
         return redirect(url_for('listar_campanhas'))
+
+    if request.method == 'POST':
+        if not verificar_admin():
+            flash('Apenas administradores podem alterar a campanha.', 'danger')
+            return redirect(url_for('ver_campanha', id=id))
+
+        if request.form.get('usuario_id'):
+            try:
+                usuario_id = int(request.form.get('usuario_id'))
+            except (TypeError, ValueError):
+                flash('ID do jogador inválido.', 'danger')
+                return redirect(url_for('ver_campanha', id=id))
+            Campanha.convidar_jogador(id, usuario_id)
+            flash('Jogador convidado para a campanha.', 'success')
+            return redirect(url_for('ver_campanha', id=id))
+
+        nome = (request.form.get('nome_campanha') or '').strip()
+        if not nome:
+            flash('Nome da campanha é obrigatório.', 'danger')
+            return redirect(url_for('ver_campanha', id=id))
+        try:
+            pontos = int(request.form.get('pontos_iniciais'))
+        except (TypeError, ValueError):
+            flash('Pontos iniciais inválidos.', 'danger')
+            return redirect(url_for('ver_campanha', id=id))
+        if pontos < 0:
+            flash('Pontos iniciais não podem ser negativos.', 'danger')
+            return redirect(url_for('ver_campanha', id=id))
+
+        Campanha.atualizar(id, {
+            'nome_campanha': nome,
+            'pontos_iniciais': pontos,
+            'descricao': request.form.get('descricao'),
+            'status': campanha.get('status') or 'Ativa',
+        })
+        flash('Campanha atualizada.', 'success')
+        return redirect(url_for('ver_campanha', id=id))
     
     # Busca personagens da campanha
     query = """

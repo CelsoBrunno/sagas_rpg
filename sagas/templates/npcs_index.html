@@ -58,9 +58,14 @@
                 </tbody>
             </table>
         </div>
+    {% elif sem_campanha %}
+        <div class="card">
+            <p>Escolha uma campanha para ver os NPCs dela.</p>
+            <a href="{{ url_for('listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
+        </div>
     {% else %}
         <div class="card">
-            <p>Nenhum NPC cadastrado ainda.</p>
+            <p>Nenhum NPC cadastrado ainda nesta campanha.</p>
         </div>
     {% endif %}
 </div>

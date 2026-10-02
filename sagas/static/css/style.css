@@ -233,6 +233,13 @@ p {
   width: 100%;
 }
 
+.nav-campanha {
+  background: var(--cor-destaque-verde);
+  color: var(--cor-texto-branco);
+  border-radius: 4px;
+  font-weight: 600;
+}
+
 .nav-link:hover {
   background-color: var(--cor-primaria-azul);
   color: var(--cor-texto-branco);

@@ -262,6 +262,8 @@ CREATE TABLE IF NOT EXISTS locais (
     descricao_publica TEXT,           -- O que os jogadores veem
     descricao_mestre TEXT,            -- Notas secretas do mestre
     imagem_principal_url VARCHAR(500), -- URL da imagem do local
+    id_campanha INT,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -285,6 +287,8 @@ CREATE TABLE IF NOT EXISTS npcs (
     -- Relação opcional com Fichas de Personagem (Módulo 1)
     ficha_personagem_id INT NULL,
     FOREIGN KEY (ficha_personagem_id) REFERENCES personagens(id) ON DELETE SET NULL,
+    id_campanha INT,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -304,6 +308,8 @@ CREATE TABLE IF NOT EXISTS mapas (
     -- Relação com Locais (Módulo 2)
     local_associado_id INT NULL,      -- Nulo se for mapa regional
     FOREIGN KEY (local_associado_id) REFERENCES locais(id) ON DELETE CASCADE,
+    id_campanha INT,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -460,16 +466,19 @@ CREATE INDEX idx_sessoes_pontos_sessao ON sessoes_pontos_pc(sessao_id);
 -- Índices para Locais
 CREATE INDEX idx_local_tipo ON locais(tipo);
 CREATE INDEX idx_local_nome ON locais(nome);
+CREATE INDEX idx_local_campanha ON locais(id_campanha);
 
 -- Índices para NPCs
 CREATE INDEX idx_npc_local ON npcs(local_atual_id);
 CREATE INDEX idx_npc_status ON npcs(status);
 CREATE INDEX idx_npc_ficha ON npcs(ficha_personagem_id);
 CREATE INDEX idx_npc_nome ON npcs(nome);
+CREATE INDEX idx_npc_campanha ON npcs(id_campanha);
 
 -- Índices para Mapas
 CREATE INDEX idx_mapa_local ON mapas(local_associado_id);
 CREATE INDEX idx_mapa_tipo ON mapas(tipo_mapa);
+CREATE INDEX idx_mapa_campanha ON mapas(id_campanha);
 
 -- Índices para Pins de Mapa
 CREATE INDEX idx_mapa_pins_mapa ON mapa_pins(mapa_id);

@@ -12,15 +12,16 @@ class Local:
         """Cria um novo local"""
         query = """
             INSERT INTO locais 
-            (nome, tipo, descricao_publica, descricao_mestre, imagem_principal_url)
-            VALUES (%s, %s, %s, %s, %s)
+            (nome, tipo, descricao_publica, descricao_mestre, imagem_principal_url, id_campanha)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """
         params = (
             dados.get('nome'),
             dados.get('tipo'),
             dados.get('descricao_publica'),
             dados.get('descricao_mestre'),
-            dados.get('imagem_principal_url')
+            dados.get('imagem_principal_url'),
+            dados.get('id_campanha')
         )
         return Database.execute_query(query, params, fetch=False)
     
@@ -29,6 +30,12 @@ class Local:
         """Lista todos os locais"""
         query = "SELECT * FROM locais ORDER BY nome"
         return Database.execute_query(query)
+    
+    @staticmethod
+    def listar_por_campanha(campanha_id):
+        """Lista os locais de uma campanha"""
+        query = "SELECT * FROM locais WHERE id_campanha = %s ORDER BY nome"
+        return Database.execute_query(query, (campanha_id,))
     
     @staticmethod
     def listar_por_tipo(tipo):
@@ -69,13 +76,17 @@ class Local:
         Database.execute_query(query, (local_id,), fetch=False)
     
     @staticmethod
-    def buscar(termo):
-        """Busca locais por termo"""
+    def buscar(termo, campanha_id=None):
+        """Busca locais por termo, limitada à campanha quando informada"""
         query = """
             SELECT * FROM locais 
-            WHERE nome LIKE %s OR descricao_publica LIKE %s 
-            ORDER BY nome
+            WHERE (nome LIKE %s OR descricao_publica LIKE %s)
         """
         termo_like = f"%{termo}%"
-        return Database.execute_query(query, (termo_like, termo_like))
+        params = [termo_like, termo_like]
+        if campanha_id:
+            query += " AND id_campanha = %s"
+            params.append(campanha_id)
+        query += " ORDER BY nome"
+        return Database.execute_query(query, tuple(params))
 
