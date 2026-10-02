@@ -412,6 +412,11 @@ def criar_minha_ficha():
                     classe_id_final = int(classe_id_str)
                 except:
                     classe_id_final = None
+
+            if raca_id_final and not pertence_a_campanha_ativa(Raca.buscar_por_id(raca_id_final)):
+                raca_id_final = None
+            if classe_id_final and not pertence_a_campanha_ativa(Classe.buscar_por_id(classe_id_final)):
+                classe_id_final = None
             
             dados = {
                 'nome': request.form.get('nome'),
@@ -582,8 +587,8 @@ def criar_minha_ficha():
             flash(f'Erro ao criar ficha: {str(e)}', 'danger')
     
     # Carrega raças e classes para o formulário
-    racas = Raca.listar_todas()
-    classes = Classe.listar_todas()
+    racas = Raca.listar_por_campanha(campanha['id'])
+    classes = Classe.listar_por_campanha(campanha['id'])
     
     return render_template('criar_minha_ficha.html', 
                          pontos_disponiveis=pontos_disponiveis,
@@ -3044,8 +3049,9 @@ def admin_racas_lista():
         flash('Acesso restrito ao Mestre (admin).', 'danger')
         return redirect(url_for('index'))
     
-    racas = Raca.listar_todas()
-    return render_template('admin_racas_lista.html', racas=racas)
+    campanha = campanha_da_sessao()
+    racas = Raca.listar_por_campanha(campanha['id']) if campanha else []
+    return render_template('admin_racas_lista.html', racas=racas, sem_campanha=campanha is None)
 
 @app.route('/admin/racas/novo', methods=['GET', 'POST'])
 def admin_racas_novo():
@@ -3053,6 +3059,10 @@ def admin_racas_novo():
     if not verificar_admin():
         flash('Acesso restrito ao Mestre (admin).', 'danger')
         return redirect(url_for('admin_racas_lista'))
+
+    campanha = exigir_campanha()
+    if not campanha:
+        return redirect(url_for('listar_campanhas'))
     
     if request.method == 'POST':
         try:
@@ -3096,7 +3106,8 @@ def admin_racas_novo():
                 'vantagens_automaticas': vantagens_json,
                 'pericias_automaticas': pericias_json,
                 'observacoes': request.form.get('observacoes', ''),
-                'is_active': request.form.get('is_active') == 'on'
+                'is_active': request.form.get('is_active') == 'on',
+                'id_campanha': campanha['id']
             }
             
             Raca.criar(dados)
@@ -3120,8 +3131,8 @@ def admin_racas_editar(id):
         return redirect(url_for('admin_racas_lista'))
     
     raca = Raca.buscar_por_id(id)
-    if not raca:
-        flash('Raça não encontrada.', 'danger')
+    if not raca or not pertence_a_campanha_ativa(raca):
+        flash('Raça não encontrada nesta campanha.', 'danger')
         return redirect(url_for('admin_racas_lista'))
     
     if request.method == 'POST':
@@ -3204,6 +3215,10 @@ def admin_racas_deletar(id):
     if not verificar_admin():
         flash('Acesso restrito ao Mestre (admin).', 'danger')
         return redirect(url_for('admin_racas_lista'))
+
+    if not pertence_a_campanha_ativa(Raca.buscar_por_id(id)):
+        flash('Raça não encontrada nesta campanha.', 'danger')
+        return redirect(url_for('admin_racas_lista'))
     
     try:
         Raca.deletar(id)
@@ -3224,8 +3239,9 @@ def admin_classes_lista():
         flash('Acesso restrito ao Mestre (admin).', 'danger')
         return redirect(url_for('index'))
     
-    classes = Classe.listar_todas()
-    return render_template('admin_classes_lista.html', classes=classes)
+    campanha = campanha_da_sessao()
+    classes = Classe.listar_por_campanha(campanha['id']) if campanha else []
+    return render_template('admin_classes_lista.html', classes=classes, sem_campanha=campanha is None)
 
 @app.route('/admin/classes/novo', methods=['GET', 'POST'])
 def admin_classes_novo():
@@ -3233,6 +3249,10 @@ def admin_classes_novo():
     if not verificar_admin():
         flash('Acesso restrito ao Mestre (admin).', 'danger')
         return redirect(url_for('admin_classes_lista'))
+
+    campanha = exigir_campanha()
+    if not campanha:
+        return redirect(url_for('listar_campanhas'))
     
     if request.method == 'POST':
         try:
@@ -3276,7 +3296,8 @@ def admin_classes_novo():
                 'vantagens_automaticas': vantagens_json,
                 'pericias_automaticas': pericias_json,
                 'observacoes': request.form.get('observacoes', ''),
-                'is_active': request.form.get('is_active') == 'on'
+                'is_active': request.form.get('is_active') == 'on',
+                'id_campanha': campanha['id']
             }
             
             Classe.criar(dados)
@@ -3300,8 +3321,8 @@ def admin_classes_editar(id):
         return redirect(url_for('admin_classes_lista'))
     
     classe = Classe.buscar_por_id(id)
-    if not classe:
-        flash('Classe não encontrada.', 'danger')
+    if not classe or not pertence_a_campanha_ativa(classe):
+        flash('Classe não encontrada nesta campanha.', 'danger')
         return redirect(url_for('admin_classes_lista'))
     
     if request.method == 'POST':
@@ -3383,6 +3404,10 @@ def admin_classes_deletar(id):
     """Deleta uma classe (soft delete)"""
     if not verificar_admin():
         flash('Acesso restrito ao Mestre (admin).', 'danger')
+        return redirect(url_for('admin_classes_lista'))
+
+    if not pertence_a_campanha_ativa(Classe.buscar_por_id(id)):
+        flash('Classe não encontrada nesta campanha.', 'danger')
         return redirect(url_for('admin_classes_lista'))
     
     try:

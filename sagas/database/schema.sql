@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS campanhas (
 -- Tabela de Raças
 CREATE TABLE IF NOT EXISTS racas (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL UNIQUE,
+    nome VARCHAR(100) NOT NULL,
     descricao TEXT,
     -- Bônus em Atributos
     bonus_st INT DEFAULT 0,
@@ -113,6 +113,9 @@ CREATE TABLE IF NOT EXISTS racas (
     -- Observações
     observacoes TEXT,
     is_active BOOLEAN DEFAULT TRUE,
+    id_campanha INT,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_racas_nome_campanha (nome, id_campanha),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -120,7 +123,7 @@ CREATE TABLE IF NOT EXISTS racas (
 -- Tabela de Classes
 CREATE TABLE IF NOT EXISTS classes (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL UNIQUE,
+    nome VARCHAR(100) NOT NULL,
     descricao TEXT,
     -- Bônus em Atributos
     bonus_st INT DEFAULT 0,
@@ -141,6 +144,9 @@ CREATE TABLE IF NOT EXISTS classes (
     -- Observações
     observacoes TEXT,
     is_active BOOLEAN DEFAULT TRUE,
+    id_campanha INT,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_classes_nome_campanha (nome, id_campanha),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -491,7 +497,7 @@ CREATE INDEX idx_rolagens_created ON rolagens_log(created_at);
 CREATE INDEX idx_rolagens_personagem ON rolagens_log(personagem_id);
 
 -- Índices para Raças e Classes
--- Nota: idx_racas_nome e idx_classes_nome são criados automaticamente pelo UNIQUE
+-- Nota: nome + id_campanha é único em racas e classes (UNIQUE KEY na tabela)
 CREATE INDEX idx_racas_active ON racas(is_active);
 CREATE INDEX idx_classes_active ON classes(is_active);
 CREATE INDEX idx_personagem_raca ON personagens(raca_id);

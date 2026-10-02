@@ -14,8 +14,8 @@ class Raca:
             INSERT INTO racas 
             (nome, descricao, bonus_st, bonus_dx, bonus_iq, bonus_ht,
              bonus_pv_extra, bonus_pf_extra, bonus_percepcao_extra, bonus_vontade_extra,
-             custo_em_pontos, vantagens_automaticas, pericias_automaticas, observacoes, is_active)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+             custo_em_pontos, vantagens_automaticas, pericias_automaticas, observacoes, is_active, id_campanha)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         params = (
             dados.get('nome'),
@@ -32,7 +32,8 @@ class Raca:
             dados.get('vantagens_automaticas'),
             dados.get('pericias_automaticas'),
             dados.get('observacoes'),
-            dados.get('is_active', True)
+            dados.get('is_active', True),
+            dados.get('id_campanha')
         )
         return Database.execute_query(query, params, fetch=False)
     
@@ -41,6 +42,12 @@ class Raca:
         """Lista todas as raças"""
         query = "SELECT * FROM racas ORDER BY nome"
         return Database.execute_query(query)
+    
+    @staticmethod
+    def listar_por_campanha(campanha_id):
+        """Lista as raças de uma campanha"""
+        query = "SELECT * FROM racas WHERE id_campanha = %s ORDER BY nome"
+        return Database.execute_query(query, (campanha_id,))
     
     @staticmethod
     def listar_ativas():
