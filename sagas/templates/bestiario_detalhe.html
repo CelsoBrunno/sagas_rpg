@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ criatura.nome }} - Bestiário{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bestiario.css') }}">
+{% endblock %}
+
+{% block content %}
+{% from "_bestiario_revelacao.html" import botoes_revelacao %}
+{% set e_mestre = session.get('role') == 'admin' %}
+{% set derrotada = criatura.nivel_revelacao >= 2 %}
+<div class="container">
+    {% set fotos = ([criatura.imagem_url] if criatura.imagem_url else []) + imagens|map(attribute='imagem_url')|list %}
+    <div class="criatura-detalhe">
+        <div>
+            <div class="criatura-imagem">
+                {% if fotos %}
+                    <img id="foto-principal" src="{{ fotos[0] }}" alt="{{ criatura.nome }}">
+                {% else %}
+                    <span class="criatura-inicial">{{ criatura.nome[:1] }}</span>
+                {% endif %}
+            </div>
+            {% if fotos|length > 1 %}
+                <div class="criatura-galeria">
+                    {% for foto in fotos %}
+                        <button type="button" class="criatura-miniatura {% if loop.first %}ativa{% endif %}"
+                                onclick="document.getElementById('foto-principal').src = '{{ foto }}';
+                                         document.querySelectorAll('.criatura-miniatura').forEach(b => b.classList.remove('ativa'));
+                                         this.classList.add('ativa');">
+                            <img src="{{ foto }}" alt="{{ criatura.nome }} - foto {{ loop.index }}">
+                        </button>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <h1 style="margin-bottom: 0.25rem;">{{ criatura.nome }}</h1>
+            <div class="criatura-categoria" style="margin-bottom: 1.5rem;">
+                {% if criatura.categoria %}{{ criatura.categoria }} · {% endif %}
+                {{ 'escondida dos jogadores' if not criatura.nivel_revelacao else niveis[criatura.nivel_revelacao]|lower }}
+            </div>
+
+            {% if derrotada or e_mestre %}
+                <div class="card">
+                    <h3>O que se sabe</h3>
+                    <p class="texto-livre">{{ criatura.descricao_publica or 'Nada registrado ainda.' }}</p>
+                </div>
+            {% else %}
+                <div class="card">
+                    <p>Vocês já viram esta criatura, mas ainda não sabem do que ela é capaz.
+                       A ficha completa aparece quando ela for derrotada.</p>
+                </div>
+            {% endif %}
+
+            {% if e_mestre and criatura.descricao_mestre %}
+                <div class="card">
+                    <h3>Notas do mestre</h3>
+                    <p class="texto-livre">{{ criatura.descricao_mestre }}</p>
+                </div>
+            {% endif %}
+
+            {% if e_mestre %}
+                <div class="form-group">
+                    <label class="form-label">O que os jogadores veem</label>
+                    {{ botoes_revelacao(criatura, niveis) }}
+                </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                {% if criatura.ficha_personagem_id and (derrotada or e_mestre) %}
+                    <a href="{{ url_for('ver_personagem', id=criatura.ficha_personagem_id) }}" class="btn-primary">Ver ficha GURPS</a>
+                {% endif %}
+                {% if e_mestre %}
+                    <a href="{{ url_for('bestiario.editar_criatura', id=criatura.id) }}" class="btn-secondary">Editar</a>
+                    <form method="POST" action="{{ url_for('bestiario.deletar_criatura', id=criatura.id) }}" style="margin: 0;"
+                          onsubmit="return confirm('Remover esta criatura do bestiário?');">
+                        <button type="submit" class="btn-danger">Remover</button>
+                    </form>
+                {% endif %}
+                <a href="{{ url_for('bestiario.listar_bestiario') }}" class="btn-secondary">← Voltar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

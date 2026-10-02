@@ -28,6 +28,7 @@ from .vantagem_desvantagem_catalogo import VantagemDesvantagemCatalogo
 from .item_catalogo import ItemCatalogo
 from .raca import Raca
 from .classe import Classe
+from .bestiario import Bestiario
 
 __all__ = [
     # Personagens
@@ -50,6 +51,7 @@ __all__ = [
     'ItemCatalogo',
     # Raças e Classes
     'Raca',
-    'Classe'
+    'Classe',
+    'Bestiario'
 ]
 

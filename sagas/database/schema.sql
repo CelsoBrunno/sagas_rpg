@@ -39,6 +39,8 @@ DROP TABLE IF EXISTS pericias_catalogo;
 DROP TABLE IF EXISTS vantagens_desvantagens_catalogo;
 DROP TABLE IF EXISTS imagens;
 DROP TABLE IF EXISTS mapas;
+DROP TABLE IF EXISTS bestiario_imagens;
+DROP TABLE IF EXISTS bestiario;
 DROP TABLE IF EXISTS npcs;
 DROP TABLE IF EXISTS locais;
 DROP TABLE IF EXISTS equipamentos_personagem;
@@ -79,6 +81,7 @@ CREATE TABLE IF NOT EXISTS campanhas (
     pontos_iniciais INT DEFAULT 100,
     descricao TEXT,
     status ENUM('Ativa', 'Pausada', 'Finalizada') DEFAULT 'Ativa',
+    tema VARCHAR(30) NOT NULL DEFAULT 'padrao',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id_mestre) REFERENCES usuarios(id) ON DELETE RESTRICT
@@ -298,6 +301,36 @@ CREATE TABLE IF NOT EXISTS npcs (
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- BESTIÁRIO (criaturas por campanha, liberadas pelo mestre)
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS bestiario (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_campanha INT NOT NULL,
+    nome VARCHAR(150) NOT NULL,
+    categoria VARCHAR(100),
+    descricao_publica TEXT,
+    descricao_mestre TEXT,
+    imagem_url VARCHAR(500),
+    ficha_personagem_id INT NULL,
+    nivel_revelacao TINYINT NOT NULL DEFAULT 0, -- 0 oculta, 1 avistada (foto), 2 derrotada (ficha)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
+    FOREIGN KEY (ficha_personagem_id) REFERENCES personagens(id) ON DELETE SET NULL,
+    UNIQUE KEY uq_bestiario_nome_campanha (nome, id_campanha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Fotos extras da criatura (a capa fica em bestiario.imagem_url)
+CREATE TABLE IF NOT EXISTS bestiario_imagens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_bestiario INT NOT NULL,
+    imagem_url VARCHAR(500) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_bestiario) REFERENCES bestiario(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==========================================

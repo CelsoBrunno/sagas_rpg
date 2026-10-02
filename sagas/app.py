@@ -7,13 +7,19 @@ from database import Database
 from models import (
     Personagem, Atributos, VantagemDesvantagem, Pericia,
     Campanha, Usuario, Local, NPC, Mapa, Imagem, Inventario, SessaoLog, PericiaCatalogo,
-    VantagemDesvantagemCatalogo, ItemCatalogo, Equipamento, Raca, Classe
+    VantagemDesvantagemCatalogo, ItemCatalogo, Equipamento, Raca, Classe, Bestiario
 )
 from config import Config
 import os
 from werkzeug.utils import secure_filename
 from decimal import Decimal
 from utils.item_effects import enriquecer_inventario
+from utils.acesso import (
+    verificar_admin, verificar_login, campanha_da_sessao,
+    exigir_campanha, pertence_a_campanha_ativa
+)
+from utils.uploads import allowed_file
+from routes.bestiario import bp as bestiario_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -25,7 +31,6 @@ app.jinja_env.auto_reload = True
 
 # Configuração de upload de imagens
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Criar pasta de uploads se não existir
@@ -33,6 +38,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Inicializa o pool de conexões
 Database.init_app(app)
+
+app.register_blueprint(bestiario_bp)
 
 # ==========================================
 # Rotas Principais
@@ -47,6 +54,9 @@ def index():
     
     campanha = campanha_da_sessao()
     personagens = Personagem.listar_por_campanha(campanha['id']) if campanha else []
+    if campanha and not verificar_admin():
+        ocultas = Bestiario.fichas_bloqueadas(campanha['id'])
+        personagens = [p for p in personagens if p['id'] not in ocultas]
     return render_template('index.html', personagens=personagens, sem_campanha=campanha is None)
 
 @app.route('/personagem/<int:id>')
@@ -61,7 +71,11 @@ def ver_personagem(id):
     if personagem.get('id_campanha') and not pertence_a_campanha_ativa(personagem):
         flash('Esse personagem pertence a outra campanha.', 'danger')
         return redirect(url_for('index'))
-    
+
+    if _ficha_oculta(personagem):
+        flash('Esta criatura ainda não foi revelada.', 'info')
+        return redirect(url_for('bestiario.listar_bestiario'))
+
     pode_equipar = _usuario_pode_gerenciar_personagem(personagem)
     
     atributos = Atributos.buscar_por_personagem(id)
@@ -209,7 +223,7 @@ def ficha_premium(id):
         return redirect(url_for('login'))
     
     personagem = Personagem.buscar_por_id(id)
-    if not personagem:
+    if not personagem or _ficha_oculta(personagem):
         flash('Personagem não encontrado.', 'danger')
         return redirect(url_for('index'))
     
@@ -230,7 +244,7 @@ def ficha_premium_pdf(id):
         return jsonify({'error': 'Não autenticado'}), 401
     
     personagem = Personagem.buscar_por_id(id)
-    if not personagem:
+    if not personagem or _ficha_oculta(personagem):
         return jsonify({'error': 'Personagem não encontrado'}), 404
     
     try:
@@ -283,7 +297,7 @@ def ficha_premium_download(id):
         return redirect(url_for('login'))
     
     personagem = Personagem.buscar_por_id(id)
-    if not personagem:
+    if not personagem or _ficha_oculta(personagem):
         flash('Personagem não encontrado.', 'danger')
         return redirect(url_for('index'))
     
@@ -1865,49 +1879,21 @@ def register():
 # Helpers - Verificação de Permissão
 # ==========================================
 
-def verificar_admin():
-    """Verifica se o usuário logado é admin"""
-    if not session.get('user_id'):
-        return False
-    return session.get('role') == 'admin'
-
-def verificar_login():
-    """Verifica se o usuário está logado"""
-    return 'user_id' in session
-
-def campanha_da_sessao():
-    """Campanha escolhida nesta sessão, ou None."""
-    campanha_id = session.get('campanha_id')
-    if not campanha_id:
-        return None
-    campanha = Campanha.buscar_por_id(campanha_id)
-    if not campanha:
-        session.pop('campanha_id', None)
-        return None
-    return campanha
-
-def exigir_campanha():
-    """Exige uma campanha escolhida e avisa quando falta."""
-    campanha = campanha_da_sessao()
-    if not campanha:
-        flash('Escolha uma campanha antes de continuar.', 'info')
-    return campanha
-
-def pertence_a_campanha_ativa(registro):
-    """Confere se o registro é da campanha escolhida."""
-    campanha = campanha_da_sessao()
-    if not campanha or not registro:
-        return False
-    try:
-        return int(registro.get('id_campanha') or 0) == int(campanha['id'])
-    except (TypeError, ValueError):
-        return False
-
 @app.context_processor
 def injetar_campanha_ativa():
     if not session.get('user_id'):
-        return {'campanha_ativa': None}
-    return {'campanha_ativa': campanha_da_sessao()}
+        return {'campanha_ativa': None, 'tema_ativo': 'padrao'}
+    campanha = campanha_da_sessao()
+    tema = (campanha or {}).get('tema') or 'padrao'
+    if tema not in Campanha.TEMAS:
+        tema = 'padrao'
+    return {'campanha_ativa': campanha, 'tema_ativo': tema}
+
+def _ficha_oculta(personagem: dict) -> bool:
+    """Ficha de criatura do bestiário que o mestre ainda não revelou aos jogadores."""
+    if not personagem or verificar_admin() or not personagem.get('id_campanha'):
+        return False
+    return personagem['id'] in Bestiario.fichas_bloqueadas(personagem['id_campanha'])
 
 def _usuario_pode_gerenciar_personagem(personagem: dict) -> bool:
     if not personagem:
@@ -1925,10 +1911,6 @@ def _usuario_pode_gerenciar_personagem(personagem: dict) -> bool:
 # ==========================================
 # Rotas - Upload de Imagens
 # ==========================================
-
-def allowed_file(filename):
-    """Verifica se a extensão do arquivo é permitida"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/api/upload', methods=['POST'])
 def upload_imagem():
@@ -2066,11 +2048,16 @@ def ver_campanha(id):
             flash('Pontos iniciais não podem ser negativos.', 'danger')
             return redirect(url_for('ver_campanha', id=id))
 
+        tema = request.form.get('tema') or campanha.get('tema') or 'padrao'
+        if tema not in Campanha.TEMAS:
+            tema = 'padrao'
+
         Campanha.atualizar(id, {
             'nome_campanha': nome,
             'pontos_iniciais': pontos,
             'descricao': request.form.get('descricao'),
             'status': campanha.get('status') or 'Ativa',
+            'tema': tema,
         })
         flash('Campanha atualizada.', 'success')
         return redirect(url_for('ver_campanha', id=id))
@@ -2085,7 +2072,8 @@ def ver_campanha(id):
     """
     personagens = Database.execute_query(query, (id,))
     
-    return render_template('campanha_detalhe.html', campanha=campanha, personagens=personagens)
+    return render_template('campanha_detalhe.html', campanha=campanha, personagens=personagens,
+                           temas=Campanha.TEMAS)
 
 @app.route('/meus-personagens')
 def meus_personagens():

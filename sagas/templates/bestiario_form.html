@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{% if criatura %}Editar {{ criatura.nome }}{% else %}Nova criatura{% endif %} - Bestiário{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bestiario.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if criatura %}Editar {{ criatura.nome }}{% else %}Nova criatura{% endif %}</h1>
+
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data"
+              action="{% if criatura %}{{ url_for('bestiario.editar_criatura', id=criatura.id) }}{% else %}{{ url_for('bestiario.nova_criatura') }}{% endif %}">
+            <div class="row">
+                <div class="col-2">
+                    <div class="form-group">
+                        <label for="nome" class="form-label">Nome *</label>
+                        <input type="text" id="nome" name="nome" class="form-control" required
+                               value="{{ criatura.nome if criatura else '' }}" placeholder="Ex: Thrall">
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label for="categoria" class="form-label">Categoria</label>
+                        <input type="text" id="categoria" name="categoria" class="form-control" list="categorias"
+                               value="{{ criatura.categoria if criatura and criatura.categoria else '' }}" placeholder="Ex: Morto-vivo">
+                        <datalist id="categorias">
+                            <option value="Morto-vivo">
+                            <option value="Besta">
+                            <option value="Gigante">
+                            <option value="Feiticeiro">
+                        </datalist>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao_publica" class="form-label">O que se sabe (aparece para os jogadores quando revelada)</label>
+                <textarea id="descricao_publica" name="descricao_publica" class="form-control" rows="5">{{ criatura.descricao_publica if criatura and criatura.descricao_publica else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao_mestre" class="form-label">Notas do mestre (nunca aparece para os jogadores)</label>
+                <textarea id="descricao_mestre" name="descricao_mestre" class="form-control" rows="5">{{ criatura.descricao_mestre if criatura and criatura.descricao_mestre else '' }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-2">
+                    <div class="form-group">
+                        <label for="ficha_personagem_id" class="form-label">Ficha GURPS</label>
+                        <select id="ficha_personagem_id" name="ficha_personagem_id" class="form-control">
+                            <option value="">Nenhuma ficha</option>
+                            {% for f in fichas %}
+                                <option value="{{ f.id }}" {% if criatura and criatura.ficha_personagem_id == f.id %}selected{% endif %}>{{ f.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <small style="color: var(--cor-texto-claro);">Fichas do tipo NPC desta campanha.</small>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label for="arquivo" class="form-label">Imagem de capa</label>
+                        <input type="file" id="arquivo" name="arquivo" class="form-control"
+                               accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+                        {% if criatura and criatura.imagem_url %}
+                            <small style="color: var(--cor-texto-claro);">Já tem imagem. Envie outra só se quiser trocar.</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="galeria" class="form-label">Mais fotos (galeria)</label>
+                <input type="file" id="galeria" name="galeria" class="form-control" multiple
+                       accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+                <small style="color: var(--cor-texto-claro);">Pode escolher várias de uma vez. Aparecem no perfil da criatura a partir de "Avistada".</small>
+            </div>
+
+            <div class="form-group">
+                <label for="nivel_revelacao" class="form-label">O que os jogadores veem</label>
+                <select id="nivel_revelacao" name="nivel_revelacao" class="form-control">
+                    {% for nivel, rotulo in niveis.items() %}
+                        <option value="{{ nivel }}" {% if criatura and criatura.nivel_revelacao == nivel %}selected{% endif %}>{{ rotulo }}</option>
+                    {% endfor %}
+                </select>
+                <small style="color: var(--cor-texto-claro);">Oculta: card preto. Avistada: só foto e nome. Derrotada: descrição e ficha GURPS.</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Salvar</button>
+                <a href="{% if criatura %}{{ url_for('bestiario.ver_criatura', id=criatura.id) }}{% else %}{{ url_for('bestiario.listar_bestiario') }}{% endif %}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    {% if criatura and imagens %}
+        <div class="card">
+            <h3>Fotos da galeria</h3>
+            <div class="galeria-edicao">
+                {% for img in imagens %}
+                    <div class="galeria-edicao-item">
+                        <img src="{{ img.imagem_url }}" alt="Foto {{ loop.index }}">
+                        <form method="POST" action="{{ url_for('bestiario.remover_imagem_galeria', id=criatura.id, imagem_id=img.id) }}"
+                              onsubmit="return confirm('Remover esta foto?');" style="margin: 0;">
+                            <button type="submit" class="btn-danger btn-small">Remover</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

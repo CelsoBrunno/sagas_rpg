@@ -203,7 +203,7 @@ p {
 }
 
 .navbar-nav.active {
-  max-height: 600px;
+  max-height: 800px;
   padding: 1rem 0;
   box-shadow: var(--sombra-dourado);
   border-top: 2px solid var(--cor-primaria-azul);

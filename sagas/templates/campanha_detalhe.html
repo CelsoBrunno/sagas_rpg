@@ -26,6 +26,14 @@
         </div>
       </div>
       <div class="form-group">
+        <label class="form-label">Visual do site nesta campanha</label>
+        <select name="tema" class="form-control">
+          {% for chave, nome in temas.items() %}
+          <option value="{{ chave }}" {% if (campanha.tema or 'padrao') == chave %}selected{% endif %}>{{ nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">Descrição</label>
         <textarea name="descricao" class="form-control" rows="3">{{ campanha.descricao }}</textarea>
       </div>

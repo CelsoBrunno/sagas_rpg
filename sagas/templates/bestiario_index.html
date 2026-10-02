@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Bestiário - GURPS Sagas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bestiario.css') }}">
+{% endblock %}
+
+{% block content %}
+{% from "_bestiario_revelacao.html" import botoes_revelacao %}
+{% set e_mestre = session.get('role') == 'admin' %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>Bestiário</h1>
+        {% if e_mestre and not sem_campanha %}
+            <a href="{{ url_for('bestiario.nova_criatura') }}" class="btn-primary">+ Nova criatura</a>
+        {% endif %}
+    </div>
+
+    {% if criaturas %}
+        <div class="bestiario-grid">
+            {% for c in criaturas %}
+                {% if c.nivel_revelacao or e_mestre %}
+                    <div class="criatura-card {% if not c.nivel_revelacao %}oculta-jogadores{% endif %}">
+                        <span class="selo-bloqueio selo-nivel-{{ c.nivel_revelacao }}">
+                            {{ 'Escondida dos jogadores' if not c.nivel_revelacao else niveis[c.nivel_revelacao] }}
+                        </span>
+                        <a href="{{ url_for('bestiario.ver_criatura', id=c.id) }}" class="criatura-imagem">
+                            {% if c.imagem_url %}
+                                <img src="{{ c.imagem_url }}" alt="{{ c.nome }}">
+                            {% else %}
+                                <span class="criatura-inicial">{{ c.nome[:1] }}</span>
+                            {% endif %}
+                        </a>
+                        <div class="criatura-info">
+                            <h3 class="criatura-nome">{{ c.nome }}</h3>
+                            <div class="criatura-categoria">{{ c.categoria or ('Ficha desconhecida' if not e_mestre and c.nivel_revelacao < 2 else '—') }}</div>
+                        </div>
+                        {% if e_mestre %}
+                            <div class="criatura-acoes">
+                                {{ botoes_revelacao(c, niveis) }}
+                                <a href="{{ url_for('bestiario.editar_criatura', id=c.id) }}" class="btn-secondary btn-small">Editar</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="criatura-card bloqueada" title="Ainda não encontrada">
+                        <div class="criatura-imagem"><span class="criatura-misterio">?</span></div>
+                        <div class="criatura-info">
+                            <h3 class="criatura-nome">???</h3>
+                            <div class="criatura-categoria">Ainda não encontrada</div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% elif sem_campanha %}
+        <div class="card">
+            <p>Escolha uma campanha para ver o bestiário dela.</p>
+            <a href="{{ url_for('listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
+        </div>
+    {% else %}
+        <div class="card">
+            <p>Nenhuma criatura cadastrada ainda nesta campanha.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

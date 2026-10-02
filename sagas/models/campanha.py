@@ -5,6 +5,12 @@
 from database import Database
 
 class Campanha:
+    # Cada tema diferente de 'padrao' precisa de static/css/tema-<chave>.css
+    TEMAS = {
+        'padrao': 'Padrão (SagaS)',
+        'myth': 'Myth (sombrio)',
+    }
+
     @staticmethod
     def criar(dados):
         """Cria uma nova campanha"""
@@ -49,7 +55,7 @@ class Campanha:
         query = """
             UPDATE campanhas 
             SET nome_campanha = %s, pontos_iniciais = %s, 
-                descricao = %s, status = %s
+                descricao = %s, status = %s, tema = %s
             WHERE id = %s
         """
         params = (
@@ -57,6 +63,7 @@ class Campanha:
             dados.get('pontos_iniciais'),
             dados.get('descricao'),
             dados.get('status'),
+            dados.get('tema', 'padrao'),
             campanha_id
         )
         Database.execute_query(query, params, fetch=False)

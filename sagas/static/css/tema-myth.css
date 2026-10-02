@@ -1,0 +1,184 @@
+/* ==========================================
+   Tema Myth - sombrio (carvão, osso, sangue seco)
+   Carregado depois de style.css, só quando a campanha ativa usa tema 'myth'.
+   ========================================== */
+
+:root {
+  /* Destaque: sangue seco no lugar do dourado */
+  --cor-primaria-azul: #7a2e27;
+  --cor-primaria-azul-escuro: #5a1f1a;
+  --cor-primaria-azul-claro: #a3473b;
+  --cor-primaria-azul-neon: #b5533f;
+
+  /* Base: carvão quase preto */
+  --cor-base-escura: #18171a;
+  --cor-base-escura-alt: #111013;
+  --cor-base-escura-hover: #2a2726;
+
+  --cor-fundo-escuro: #0d0c0e;
+  --cor-fundo-escuro-alt: #111013;
+  /* Pares claro/escuro invertidos para manter contraste em fundo escuro */
+  --cor-fundo-branco: #1c1b1e;
+  --cor-fundo-cinza-claro: #232124;
+  --cor-fundo-cinza-medio: #3a3634;
+  --cor-fundo-cinza-escuro: #242123;
+
+  /* Texto: osso e cinza */
+  --cor-texto-escuro: #d3ccbf;
+  --cor-texto-medio: #a59e92;
+  --cor-texto-claro: #847e75;
+  --cor-texto-branco: #d3ccbf;
+  --cor-texto-cinza-claro: #9b958b;
+
+  /* Destaques apagados */
+  --cor-destaque-verde: #4b5e41;
+  --cor-destaque-vermelho: #8f2a22;
+  --cor-destaque-azul: #8a7656;
+  --cor-destaque-amarelo: #8a7656;
+
+  --cor-titulo: #b9ad97;
+
+  --sombra-dourado: 0 4px 14px rgba(0, 0, 0, 0.7);
+}
+
+body {
+  background:
+    radial-gradient(ellipse at top, rgba(60, 20, 18, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom, #000 0%, transparent 70%),
+    var(--cor-fundo-escuro);
+  background-attachment: fixed;
+}
+
+/* Tipografia */
+h1, h2, h3, h4, h5, h6,
+.card-title,
+.form-label {
+  font-family: 'Cinzel', 'Georgia', serif;
+  color: var(--cor-titulo);
+  letter-spacing: 0.5px;
+}
+
+h1 {
+  color: var(--cor-texto-branco);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Navegação */
+.navbar {
+  border-bottom: 1px solid var(--cor-primaria-azul-escuro);
+}
+
+.navbar-brand img {
+  filter: grayscale(80%) sepia(25%) brightness(0.75) contrast(1.1);
+}
+
+.navbar-nav.active {
+  border-top: 1px solid var(--cor-primaria-azul-escuro);
+  border-left: 1px solid var(--cor-primaria-azul-escuro);
+}
+
+.nav-link {
+  font-family: 'Cinzel', 'Georgia', serif;
+  letter-spacing: 1px;
+}
+
+.nav-link:hover {
+  background-color: var(--cor-base-escura-hover);
+  color: var(--cor-primaria-azul-neon);
+}
+
+/* Botões: sem brilho, sem "pulo" */
+.btn-primary,
+.btn-secondary,
+.btn-rolar {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-rolar:hover {
+  transform: none;
+  box-shadow: 0 0 0 1px var(--cor-primaria-azul-claro), 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.btn-secondary {
+  border: 1px solid var(--cor-primaria-azul);
+}
+
+.btn-success:hover,
+.btn-danger:hover {
+  transform: none;
+}
+
+/* Cards */
+.card {
+  background: linear-gradient(180deg, #151416 0%, #0f0e10 100%);
+  border: 1px solid #242122;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.card:hover {
+  transform: none;
+  border-color: var(--cor-primaria-azul-escuro);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.75);
+}
+
+.card-header {
+  border-bottom: 1px solid var(--cor-primaria-azul-escuro);
+}
+
+/* Formulários */
+.form-control:focus,
+.card .form-control:focus {
+  box-shadow: 0 0 0 3px rgba(122, 46, 39, 0.25);
+}
+
+/* Abas */
+.tabs {
+  border-bottom: 1px solid var(--cor-primaria-azul-escuro);
+}
+
+.tab-button:hover,
+.tab-button.active {
+  color: var(--cor-primaria-azul-neon);
+}
+
+/* Tabelas */
+.table-gurps thead {
+  background: var(--cor-primaria-azul-escuro);
+  border-bottom: 1px solid var(--cor-primaria-azul);
+}
+
+.table-gurps tbody tr:nth-child(even) {
+  background-color: #141315;
+}
+
+.table-gurps tbody tr:hover {
+  background-color: #1f1c1d;
+}
+
+/* Alertas */
+.alert-info {
+  background-color: rgba(138, 118, 86, 0.12);
+  border-color: var(--cor-destaque-azul);
+  color: #c9bea9;
+}
+
+.rolagem-dados {
+  color: var(--cor-primaria-azul-neon);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar-track {
+  background: var(--cor-fundo-escuro);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cor-base-escura-hover);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cor-primaria-azul-escuro);
+}

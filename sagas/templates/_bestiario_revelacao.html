@@ -1,0 +1,11 @@
+{% macro botoes_revelacao(criatura, niveis) %}
+<form method="POST" action="{{ url_for('bestiario.definir_revelacao', id=criatura.id) }}" class="revelacao-niveis">
+    {% for nivel, rotulo in niveis.items() %}
+        <button type="submit" name="nivel" value="{{ nivel }}"
+                class="{% if criatura.nivel_revelacao == nivel %}btn-primary{% else %}btn-secondary{% endif %} btn-small"
+                {% if criatura.nivel_revelacao == nivel %}disabled{% endif %}>
+            {{ rotulo }}
+        </button>
+    {% endfor %}
+</form>
+{% endmacro %}

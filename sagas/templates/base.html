@@ -16,9 +16,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     
+    {% if tema_ativo == 'myth' %}
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    {% endif %}
+    {% if tema_ativo != 'padrao' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tema-' ~ tema_ativo ~ '.css') }}">
+    {% endif %}
+    
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="tema-{{ tema_ativo }}">
     <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-content">
@@ -53,6 +60,7 @@
                 <li class="nav-item"><a href="{{ url_for('listar_locais') }}" class="nav-link">Locais</a></li>
                 <li class="nav-item"><a href="{{ url_for('listar_npcs') }}" class="nav-link">NPCs</a></li>
                 <li class="nav-item"><a href="{{ url_for('listar_mapas') }}" class="nav-link">Mapas</a></li>
+                <li class="nav-item"><a href="{{ url_for('bestiario.listar_bestiario') }}" class="nav-link">Bestiário</a></li>
                 <li class="nav-item"><a href="{{ url_for('ultimas_rolagens') }}" class="nav-link">Últimas rolagens</a></li>
                 {% if session.get('role') == 'admin' %}
                     <li class="nav-item"><a href="{{ url_for('admin_dashboard') }}" class="nav-link">⚙️ Admin</a></li>
