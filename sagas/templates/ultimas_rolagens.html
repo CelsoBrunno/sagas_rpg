@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Últimas Rolagens - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Últimas Rolagens</h1>
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table-gurps">
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Personagem</th>
+                        <th>Tipo</th>
+                        <th>Alvo</th>
+                        <th>Bônus</th>
+                        <th>Dados</th>
+                        <th>Total</th>
+                        <th>Resultado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rolagens %}
+                    <tr>
+                        <td>{{ r.created_at.strftime('%d/%m/%Y %H:%M') if r.created_at else '' }}</td>
+                        <td>{{ r.personagem_nome or '-' }}</td>
+                        <td>{{ r.tipo }}</td>
+                        <td>{{ r.alvo }}</td>
+                        <td>{{ r.bonus }}</td>
+                        <td>[{{ r.resultados }}]</td>
+                        <td>{{ r.total }}</td>
+                        <td>
+                            {% if r.sucesso %}
+                            <span class="badge badge-success">Sucesso</span>
+                            {% else %}
+                            <span class="badge badge-danger">Falha</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

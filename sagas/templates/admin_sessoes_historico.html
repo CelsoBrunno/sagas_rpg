@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Histórico de Sessões - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Histórico de Sessões</h1>
+
+  <div class="row" style="margin-bottom: 1rem;">
+    <div class="col">
+      <a class="btn-secondary" href="{{ url_for('admin_sessoes_form') }}">Distribuir Pontos</a>
+    </div>
+  </div>
+
+  {% for sessao in sessoes %}
+  <div class="card">
+    <h3>{{ sessao.data_sessao.strftime('%d/%m/%Y') if sessao.data_sessao else '' }} - {{ sessao.descricao or 'Sessão' }}</h3>
+    {% if sessao.itens and sessao.itens|length > 0 %}
+      <p>
+        {% for it in sessao.itens %}
+          <span class="badge badge-primary">{{ it.personagem_nome }} (+{{ it.pontos_ganhos }})</span>
+        {% endfor %}
+      </p>
+    {% else %}
+      <p class="text-center">Nenhum PC recebeu pontos nesta sessão.</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+

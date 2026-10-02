@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}NPCs - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>NPCs da Campanha</h1>
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('novo_npc') }}" class="btn-primary">+ Novo NPC</a>
+        {% endif %}
+    </div>
+    
+    {% if npcs %}
+        <div class="table-responsive">
+            <table class="table-gurps">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Status</th>
+                        <th>Local Atual</th>
+                        <th>Ficha</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for npc in npcs %}
+                    <tr>
+                        <td><strong>{{ npc.nome }}</strong></td>
+                        <td>
+                            <span class="badge badge-{% if npc.status == 'Vivo' %}success{% else %}secondary{% endif %}">
+                                {{ npc.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if npc.local_nome %}
+                                <a href="{{ url_for('ver_local', id=npc.local_atual_id) }}" class="btn-secondary btn-small">
+                                    {{ npc.local_nome }}
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if npc.ficha_personagem_id %}
+                                <a href="{{ url_for('ver_personagem', id=npc.ficha_personagem_id) }}" class="btn-success btn-small">
+                                    Ver Ficha
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('ver_npc', id=npc.id) }}" class="btn-primary btn-small">Ver</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="card">
+            <p>Nenhum NPC cadastrado ainda.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

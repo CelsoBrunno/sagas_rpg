@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Usuários{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Gerenciar Usuários</h1>
+    
+    <div class="table-responsive">
+        <table class="table-gurps">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Nome Completo</th>
+                    <th>Role</th>
+                    <th>Pontos Disponíveis</th>
+                    <th>Status</th>
+                    <th>Criado em</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.id }}</td>
+                    <td><strong>{{ usuario.username }}</strong></td>
+                    <td>{{ usuario.email or '-' }}</td>
+                    <td>{{ usuario.nome_completo or '-' }}</td>
+                    <td>
+                        <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem;
+                            {% if usuario.role == 'admin' %}background: #dc3545; color: white;
+                            {% else %}background: #17a2b8; color: white;
+                            {% endif %}">
+                            {{ usuario.role }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-weight: bold; color: var(--cor-primaria-azul); font-size: 1.1rem;">
+                            {{ usuario.pontos_disponiveis or 0 }}
+                        </span>
+                        <span style="color: var(--cor-texto-claro); font-size: 0.875rem;">pts</span>
+                    </td>
+                    <td>
+                        {% if usuario.is_active %}
+                            <span style="color: #28a745; font-weight: bold;">Ativo</span>
+                        {% else %}
+                            <span style="color: #dc3545; font-weight: bold;">Inativo</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ usuario.created_at.strftime('%d/%m/%Y') if usuario.created_at else '-' }}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="{{ url_for('admin_usuarios_pontos', id=usuario.id) }}" class="btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; background: #ffc107; color: #333;">💰 Pontos</a>
+                            <a href="{{ url_for('admin_usuarios_editar', id=usuario.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

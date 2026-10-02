@@ -1,0 +1,568 @@
+{% extends "base.html" %}
+
+{% block title %}{{ personagem.nome }} - Ficha Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ficha_premium.css') }}">
+<!-- html2pdf.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+    body {
+        background: #2c1810 !important;
+    }
+    .navbar {
+        display: none;
+    }
+    footer {
+        display: none;
+    }
+    /* Botão de edição */
+    .btn-editar {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        border: 2px solid #8b6914;
+        padding: 10px 20px;
+        border-radius: 5px;
+        color: #3d2817;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .btn-editar:hover {
+        transform: scale(1.05);
+    }
+    .edit-mode input[readonly],
+    .edit-mode textarea[readonly],
+    .edit-mode select[readonly] {
+        background: rgba(255,255,255,0.9) !important;
+        border: 1px solid #8b6914 !important;
+        cursor: text !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<body class="ficha-premium">
+<div style="position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000;">
+    <button class="btn-editar" onclick="toggleEdicao()" id="btn-editar">✏️ Editar</button>
+    <button class="btn-editar" onclick="exportarPDF()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">📄 PDF</button>
+</div>
+<div class="ficha-gurps-container" id="ficha-container">
+    <!-- Elementos Ornamentais Absolutos (PNG recomendados) -->
+    <div class="ornamento ornamento-dragao" title="Dragão Decorativo">
+        <!-- Placeholder para imagem PNG do dragão -->
+        <!-- <img src="{{ url_for('static', filename='images/decoracoes/dragao.png') }}" alt="Dragão" loading="lazy"> -->
+    </div>
+    <div class="ornamento ornamento-brasao" title="Brasão D&D">
+        <!-- Placeholder para imagem PNG do brasão -->
+        <!-- <img src="{{ url_for('static', filename='images/decoracoes/brasao.png') }}" alt="Brasão" loading="lazy"> -->
+    </div>
+    
+    <div class="decoracao-lateral esquerda"></div>
+    <div class="decoracao-lateral direita"></div>
+    <script>window.personagemId = {{ personagem.id }};</script>
+    
+    <!-- Header Section (Ocupa todas as colunas) -->
+    <header class="header-section">
+        <div class="ficha-logo">
+            <h1>🎲 GURPS<br>SAGAS</h1>
+        </div>
+        <div class="ficha-titulo">
+            <h2>{{ personagem.nome or 'Personagem' }}</h2>
+        </div>
+        <div style="flex: 0 0 200px;"></div>
+    </div>
+
+    <!-- Campos do Header -->
+    <div class="ficha-header-fields">
+        <div class="header-field">
+            <label>Raça e Tipo</label>
+            <input type="text" value="{{ personagem.raca or '' }} - {{ personagem.tipo or '' }}" readonly>
+        </div>
+        <div class="header-field">
+            <label>Jogador</label>
+            <input type="text" value="{{ personagem.jogador_nome or '' }}" readonly>
+        </div>
+        <div class="header-field">
+            <label>Pontos de Experiência</label>
+            <input type="text" value="{{ (pontos_resumo.pontos_base or 0) + (pontos_resumo.pontos_ganhos or 0) }}" readonly>
+        </div>
+    </div>
+
+    <!-- Banners Dourados: Inspiração e Bônus -->
+    <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+        <div class="banner-dourado">
+            <label>Pontos Disponíveis</label>
+            <div class="value">{{ pontos_resumo.pontos_disponiveis or 0 }}</div>
+        </div>
+        <div class="banner-dourado">
+            <label>Pontos Gastos</label>
+            <div class="value">{{ pontos_resumo.pontos_gastos or 0 }}</div>
+        </div>
+    </div>
+
+    <!-- Área Central: Atributos e Imagem -->
+    <div class="atributos-container">
+        <!-- Imagem do Personagem (Central) -->
+        <div class="personagem-imagem" id="personagem-imagem" onclick="document.getElementById('upload-imagem').click()" style="cursor: pointer;" title="Clique para trocar imagem">
+            {% if imagem_principal %}
+                <img src="{{ imagem_principal.path_url }}" alt="{{ personagem.nome }}" id="img-personagem">
+            {% else %}
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b6914; font-size: 48px;">
+                    🧙
+                </div>
+            {% endif %}
+            <input type="file" id="upload-imagem" accept="image/*" style="display: none;" onchange="uploadImagemPersonagem(event)">
+        </div>
+
+        <!-- Círculos de Atributos (GURPS: ST, DX, IQ, HT) -->
+        {% if atributos %}
+        <div class="atributo-circulo" data-attr="ST">
+            <label>ST</label>
+            <input type="number" value="{{ atributos.ST }}" min="1" max="30" onchange="salvarAtributo('ST', this.value)" readonly>
+        </div>
+        <div class="atributo-circulo" data-attr="DX">
+            <label>DX</label>
+            <input type="number" value="{{ atributos.DX }}" min="1" max="30" onchange="salvarAtributo('DX', this.value)" readonly>
+        </div>
+        <div class="atributo-circulo" data-attr="IQ">
+            <label>IQ</label>
+            <input type="number" value="{{ atributos.IQ }}" min="1" max="30" onchange="salvarAtributo('IQ', this.value)" readonly>
+        </div>
+        <div class="atributo-circulo" data-attr="HT">
+            <label>HT</label>
+            <input type="number" value="{{ atributos.HT }}" min="1" max="30" onchange="salvarAtributo('HT', this.value)" readonly>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- CA, Iniciativa, Deslocamento, Esquiva -->
+    {% if atributos_derivados %}
+    <div class="stats-banners">
+        <div class="stat-banner">
+            <label>Esquiva</label>
+            <div class="value">{{ atributos_derivados.esquiva or 0 }}</div>
+        </div>
+        <div class="stat-banner">
+            <label>Deslocamento</label>
+            <div class="value">{{ atributos_derivados.deslocamento or 0 }}</div>
+        </div>
+        <div class="stat-banner">
+            <label>Velocidade</label>
+            <div class="value">{{ atributos_derivados.velocidade_basica or 0 }}</div>
+        </div>
+        <div class="stat-banner">
+            <label>Percepção</label>
+            <div class="value">{{ atributos_derivados.percepcao or 0 }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Layout Principal: Grid de 3 Colunas -->
+    <main class="ficha-main-grid">
+        <!-- Coluna Esquerda: Testes e Perícias -->
+        <section class="left-column">
+            <!-- Testes de Resistência -->
+            <div class="testes-resistencia">
+                <h3>Testes de Resistência</h3>
+                <div class="testes-grid">
+                    {% if atributos %}
+                    <div class="teste-item red" onclick="rolarAtributo('ST', {{ atributos.ST }})">
+                        <label>ST</label>
+                        <input type="text" value="{{ atributos.ST }}" readonly>
+                        <button class="btn-rolar" title="Rolar teste">🎲</button>
+                    </div>
+                    <div class="teste-item blue" onclick="rolarAtributo('DX', {{ atributos.DX }})">
+                        <label>DX</label>
+                        <input type="text" value="{{ atributos.DX }}" readonly>
+                        <button class="btn-rolar" title="Rolar teste">🎲</button>
+                    </div>
+                    <div class="teste-item green" onclick="rolarAtributo('HT', {{ atributos.HT }})">
+                        <label>HT</label>
+                        <input type="text" value="{{ atributos.HT }}" readonly>
+                        <button class="btn-rolar" title="Rolar teste">🎲</button>
+                    </div>
+                    <div class="teste-item purple" onclick="rolarAtributo('IQ', {{ atributos.IQ }})">
+                        <label>IQ</label>
+                        <input type="text" value="{{ atributos.IQ }}" readonly>
+                        <button class="btn-rolar" title="Rolar teste">🎲</button>
+                    </div>
+                    <div class="teste-item orange" onclick="rolarAtributo('Per', {{ atributos_derivados.percepcao or atributos.IQ }})">
+                        <label>Per</label>
+                        <input type="text" value="{{ atributos_derivados.percepcao or atributos.IQ }}" readonly>
+                        <button class="btn-rolar" title="Rolar teste">🎲</button>
+                    </div>
+                    <div class="teste-item yellow" onclick="rolarAtributo('VT', {{ atributos_derivados.vontade or atributos.IQ }})">
+                        <label>VT</label>
+                        <input type="text" value="{{ atributos_derivados.vontade or atributos.IQ }}" readonly>
+                        <button class="btn-rolar" title="Rolar teste">🎲</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Perícias -->
+            <div class="pericias-section">
+                <h3>Perícias</h3>
+                {% for pericia in pericias %}
+                <div class="pericia-item" data-nh="{{ pericia.nivel_habilidade_calculado }}" data-nome="{{ pericia.nome_pericia }}">
+                    <div class="pericia-checkbox" style="background: {% if pericia.pontos_investidos > 0 %}#FFD700{% else %}transparent{% endif %};"></div>
+                    <span class="pericia-nome">{{ pericia.nome_pericia }}</span>
+                    <span class="pericia-attr">({{ pericia.atributo_base }})</span>
+                    <input type="text" class="pericia-value" value="{{ pericia.nivel_habilidade_calculado }}" readonly>
+                    <button class="btn-rolar-pericia" onclick="rolarPericia('{{ pericia.nome_pericia }}', {{ pericia.nivel_habilidade_calculado }})" title="Rolar perícia">
+                        🎲
+                    </button>
+                </div>
+                {% endfor %}
+                {% if not pericias %}
+                <p style="color: #8b6914; font-style: italic; text-align: center; margin-top: 20px;">Nenhuma perícia adicionada</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Coluna Direita: Ataques, Vida, Características -->
+        <section class="right-column">
+            <!-- Ataques e Magias / Inventário -->
+            <div class="ataques-section">
+                <h3>Ataques e Equipamentos</h3>
+                {% for item in inventario[:4] %}
+                <div class="ataque-item">
+                    <div class="ataque-header">
+                        <div class="ataque-field">
+                            <label>Item/Equipamento</label>
+                            <input type="text" value="{{ item.nome_item }}" readonly>
+                        </div>
+                        <div class="ataque-field">
+                            <label>Quantidade</label>
+                            <input type="text" value="{{ item.quantidade }}" readonly>
+                        </div>
+                        <div class="ataque-field">
+                            <label>Peso</label>
+                            <input type="text" value="{{ '%.2f'|format(item.peso or 0) }}" readonly>
+                        </div>
+                        <div class="ataque-field">
+                            <label>Total</label>
+                            <input type="text" value="{{ '%.2f'|format((item.peso or 0) * (item.quantidade or 0)) }}" readonly>
+                        </div>
+                        <div class="ataque-field">
+                            <label>Status</label>
+                            <input type="text" value="{% if item.quantidade_em_uso > 0 %}Em Uso{% else %}Disponível{% endif %}" readonly>
+                        </div>
+                    </div>
+                    {% if item.notas %}
+                    <textarea class="ataque-descricao" readonly>{{ item.notas }}</textarea>
+                    {% else %}
+                    <textarea class="ataque-descricao" readonly placeholder="Notas..."></textarea>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% if not inventario %}
+                <div class="ataque-item">
+                    <p style="color: #8b6914; font-style: italic; text-align: center;">Inventário vazio</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Dados de Vida -->
+            {% if atributos_derivados %}
+            <div class="vida-section">
+                <h3>Dados de Vida</h3>
+                <div class="vida-total">
+                    <div class="vida-icon">❤️</div>
+                    <input type="text" class="vida-input" id="pv-total" value="{{ atributos_derivados.PV }}" readonly>
+                    <label style="font-size: 14px; color: #6b4e2e;">PV Totais</label>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; color: #6b4e2e; margin-bottom: 5px;">Pontos de Vida Atuais</label>
+                    <input type="number" class="vida-atual" id="pv-atual" value="{{ atributos_derivados.PV }}" min="0" onchange="salvarPVAtual()" readonly>
+                </div>
+                <div class="vida-total" style="margin-top: 15px;">
+                    <div class="vida-icon" style="background: #1e88e5;">💨</div>
+                    <input type="text" class="vida-input" id="pf-total" value="{{ atributos_derivados.PF }}" readonly>
+                    <label style="font-size: 14px; color: #6b4e2e;">PF Totais</label>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label style="display: block; font-size: 12px; color: #6b4e2e; margin-bottom: 5px;">Pontos de Fadiga Atuais</label>
+                    <input type="number" class="vida-atual" id="pf-atual" value="{{ atributos_derivados.PF }}" min="0" onchange="salvarPFAtual()" readonly>
+                </div>
+
+                <!-- Testes Contra Morte (placeholder) -->
+                <div class="morte-section">
+                    <div class="morte-item">
+                        <div class="morte-icon" style="background: #28a745;">✓</div>
+                        <label>Sucessos</label>
+                    </div>
+                    <div class="morte-item">
+                        <div class="morte-icon" style="background: #dc3545;">✗</div>
+                        <label>Fracassos</label>
+                    </div>
+                    <div class="morte-item">
+                        <div class="morte-icon" style="background: #8b6914;">⚔️</div>
+                        <label>Testes</label>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Idiomas e Outras Proficiências -->
+            <div class="idiomas-section">
+                <h3>Idiomas e Outras Proficiências</h3>
+                <textarea class="idiomas-textarea" id="observacoes-text" readonly placeholder="Liste idiomas, ferramentas e outras proficiências..." onblur="salvarObservacoes()">{{ personagem.observacoes_mestre or '' }}</textarea>
+            </div>
+
+            <!-- Características e Habilidades -->
+            <div class="caracteristicas-section">
+                <h3>Características e Habilidades</h3>
+                <textarea class="caracteristicas-textarea" id="biografia-text" readonly onblur="salvarBiografia()">{{ personagem.biografia or 'Nenhuma característica ou habilidade especial registrada.' }}</textarea>
+            </div>
+
+            <!-- Vantagens e Desvantagens -->
+            {% if vantagens %}
+            <div class="caracteristicas-section">
+                <h3>Vantagens e Desvantagens</h3>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    {% for vd in vantagens %}
+                    <div style="margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.5); border-left: 4px solid {% if vd.custo_em_pontos < 0 %}#dc3545{% else %}#28a745{% endif %}; border-radius: 3px;">
+                        <strong style="color: #8b6914;">{{ vd.nome_item }}</strong>
+                        <span style="color: {% if vd.custo_em_pontos < 0 %}#dc3545{% else %}#28a745{% endif %}; font-weight: 600; margin-left: 10px;">
+                            {{ vd.custo_em_pontos }} pts
+                        </span>
+                        {% if vd.notas %}
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b4e2e;">{{ vd.notas }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/ficha_premium.js') }}"></script>
+<script>
+    let editMode = false;
+    
+    // Efeito de papel envelhecido com Canvas
+    function criarPapelEnvelhecido() {
+        const container = document.getElementById('ficha-container');
+        if (!container) return;
+        
+        // Remove canvas anterior se existir
+        const oldCanvas = document.getElementById('paper-canvas');
+        if (oldCanvas) oldCanvas.remove();
+        
+        // Aguardar um frame para garantir que o container tenha dimensões
+        requestAnimationFrame(() => {
+            const canvas = document.createElement('canvas');
+            canvas.id = 'paper-canvas';
+            const ctx = canvas.getContext('2d');
+            
+            // Usar dimensões do container
+            const rect = container.getBoundingClientRect();
+            canvas.width = Math.max(rect.width, 1200);
+            canvas.height = Math.max(rect.height, 1600);
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            
+            // Gradiente base para variação de cor
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, 'rgba(139, 105, 20, 0.04)');
+            gradient.addColorStop(0.3, 'rgba(107, 78, 46, 0.06)');
+            gradient.addColorStop(0.6, 'rgba(139, 105, 20, 0.05)');
+            gradient.addColorStop(1, 'rgba(107, 78, 46, 0.04)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Manchas e desgaste aleatórios (simula descoloração)
+            for (let i = 0; i < 60; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = 30 + Math.random() * 100;
+                const opacity = 0.03 + Math.random() * 0.08;
+                
+                const grd = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                grd.addColorStop(0, `rgba(139, 105, 20, ${opacity})`);
+                grd.addColorStop(0.4, `rgba(107, 78, 46, ${opacity * 0.6})`);
+                grd.addColorStop(1, 'rgba(139, 105, 20, 0)');
+                
+                ctx.fillStyle = grd;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Linhas de textura sutis (simula fibras do papel)
+            ctx.lineCap = 'round';
+            for (let i = 0; i < 250; i++) {
+                const x1 = Math.random() * canvas.width;
+                const y1 = Math.random() * canvas.height;
+                const length = 20 + Math.random() * 80;
+                const angle = Math.random() * Math.PI * 2;
+                const x2 = x1 + Math.cos(angle) * length;
+                const y2 = y1 + Math.sin(angle) * length;
+                
+                ctx.strokeStyle = `rgba(139, 105, 20, ${0.015 + Math.random() * 0.025})`;
+                ctx.lineWidth = 0.3 + Math.random() * 0.7;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+            
+            // Pontos de desgaste e pequenas imperfeições
+            for (let i = 0; i < 40; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = 0.5 + Math.random() * 2.5;
+                
+                ctx.fillStyle = `rgba(107, 78, 46, ${0.08 + Math.random() * 0.15})`;
+                ctx.beginPath();
+                ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Adicionar algumas "rachaduras" sutis
+            for (let i = 0; i < 15; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const segments = 3 + Math.floor(Math.random() * 4);
+                
+                ctx.strokeStyle = `rgba(107, 78, 46, ${0.05 + Math.random() * 0.1})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                
+                let curX = x;
+                let curY = y;
+                for (let s = 0; s < segments; s++) {
+                    curX += (Math.random() - 0.5) * 40;
+                    curY += (Math.random() - 0.5) * 40;
+                    ctx.lineTo(curX, curY);
+                }
+                ctx.stroke();
+            }
+            
+            // Inserir canvas após os elementos de decoração, mas antes do conteúdo
+            const firstContent = container.querySelector('.ficha-header') || container.firstChild.nextSibling;
+            if (firstContent) {
+                container.insertBefore(canvas, firstContent);
+            } else {
+                container.appendChild(canvas);
+            }
+        });
+    }
+    
+    // Atualizar canvas ao redimensionar
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            criarPapelEnvelhecido();
+        }, 300);
+    });
+    
+    function toggleEdicao() {
+        editMode = !editMode;
+        const container = document.getElementById('ficha-container');
+        const btn = document.getElementById('btn-editar');
+        
+        if (editMode) {
+            container.classList.add('edit-mode');
+            btn.textContent = '💾 Salvar';
+            btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            
+            // Remove readonly de todos os campos
+            container.querySelectorAll('input[readonly], textarea[readonly]').forEach(el => {
+                el.removeAttribute('readonly');
+            });
+        } else {
+            container.classList.remove('edit-mode');
+            btn.textContent = '✏️ Editar';
+            btn.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
+            
+            // Adiciona readonly de volta
+            container.querySelectorAll('input:not([data-no-readonly]), textarea:not([data-no-readonly])').forEach(el => {
+                if (!el.closest('.personagem-imagem') && el.id !== 'pv-atual' && el.id !== 'pf-atual') {
+                    el.setAttribute('readonly', 'readonly');
+                }
+            });
+        }
+    }
+    
+    // Exportar para PDF usando html2pdf.js
+    function exportarPDF() {
+        const container = document.getElementById('ficha-container');
+        const btnEditar = document.getElementById('btn-editar');
+        const btnPdf = document.querySelector('.btn-editar[onclick="exportarPDF()"]');
+        
+        // Esconde botões temporariamente
+        if (btnEditar) btnEditar.style.display = 'none';
+        if (btnPdf) btnPdf.style.display = 'none';
+        
+        // Opções do PDF
+        const nomePersonagem = document.querySelector('.ficha-titulo h2')?.textContent || 'personagem';
+        const opt = {
+            margin: [10, 10, 10, 10],
+            filename: `ficha_${nomePersonagem.replace(/\s+/g, '_')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#f5e6d3'
+            },
+            jsPDF: { 
+                unit: 'mm', 
+                format: 'a4', 
+                orientation: 'portrait',
+                compress: true
+            },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+        
+        // Gerar PDF
+        html2pdf().set(opt).from(container).save().then(() => {
+            // Mostra botões novamente
+            if (btnEditar) btnEditar.style.display = 'block';
+            if (btnPdf) btnPdf.style.display = 'block';
+            mostrarNotificacao('PDF gerado com sucesso!');
+        }).catch(err => {
+            console.error('Erro ao gerar PDF:', err);
+            mostrarNotificacao('Erro ao gerar PDF. Tente novamente.');
+            if (btnEditar) btnEditar.style.display = 'block';
+            if (btnPdf) btnPdf.style.display = 'block';
+        });
+    }
+    
+    // Inicializar efeitos ao carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        criarPapelEnvelhecido();
+        
+        // Atualizar canvas a cada 5 segundos para dinamismo (opcional)
+        // setInterval(criarPapelEnvelhecido, 5000);
+    });
+</script>
+<style media="print">
+    body {
+        background: white !important;
+    }
+    .btn-editar {
+        display: none !important;
+    }
+    .ficha-container {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        padding: 20px !important;
+    }
+</style>
+{% endblock %}
+</body>
+{% endblock %}
+

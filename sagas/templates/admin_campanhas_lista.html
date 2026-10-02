@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Campanhas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>Gerenciar Campanhas</h1>
+        <a href="{{ url_for('admin_campanhas_novo') }}" class="btn-primary">+ Nova Campanha</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table-gurps">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Mestre</th>
+                    <th>Pontos Iniciais</th>
+                    <th>Status</th>
+                    <th>Personagens</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for campanha in campanhas %}
+                <tr>
+                    <td>{{ campanha.id }}</td>
+                    <td><strong>{{ campanha.nome_campanha }}</strong></td>
+                    <td>{{ campanha.mestre_username or '-' }}</td>
+                    <td>{{ campanha.pontos_iniciais }}</td>
+                    <td>
+                        <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem;
+                            {% if campanha.status == 'Ativa' %}background: #28a745; color: white;
+                            {% elif campanha.status == 'Pausada' %}background: #ffc107; color: #333;
+                            {% else %}background: #6c757d; color: white;
+                            {% endif %}">
+                            {{ campanha.status }}
+                        </span>
+                    </td>
+                    <td>{{ campanha.total_personagens or 0 }}</td>
+                    <td>
+                        <a href="{{ url_for('admin_campanhas_editar', id=campanha.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

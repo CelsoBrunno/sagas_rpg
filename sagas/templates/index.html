@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Personagens - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Personagens da Campanha</h1>
+    
+    {% if session.get('role') == 'admin' %}
+        <div style="margin-bottom: 2rem;">
+            <a href="{{ url_for('novo_personagem') }}" class="btn-primary">+ Novo Personagem</a>
+        </div>
+    {% endif %}
+
+    {% if personagens %}
+        <div class="row">
+            {% for personagem in personagens %}
+                <div class="col-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>{{ personagem.nome }}</h3>
+                            {% set jogador_display = personagem.usuario_nome_completo or personagem.usuario_username or personagem.jogador_nome %}
+                            <p style="color: var(--cor-texto-claro); margin: 0;">
+                                <strong>Jogador:</strong> {{ jogador_display or 'NPC' }}<br>
+                                <strong>Raça:</strong> {{ personagem.raca or 'Não definida' }}
+                            </p>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Pontos Base:</strong> {{ personagem.pontos_base }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge badge-{% if personagem.status == 'Ativo' %}success{% elif personagem.status == 'Inativo' %}secondary{% else %}danger{% endif %}">
+                                    {{ personagem.status }}
+                                </span>
+                            </p>
+                            <p><strong>Tipo:</strong> {{ personagem.tipo }}</p>
+                            
+                            <div style="margin-top: 1.5rem;">
+                                <a href="{{ url_for('ver_personagem', id=personagem.id) }}" class="btn-primary" style="width: 100%;">Ver Ficha Completa</a>
+                                {% if session.get('role') == 'admin' %}
+                                    <button onclick="deletarPersonagem({{ personagem.id }})" class="btn-danger btn-small" style="width: 100%; margin-top: 0.5rem;">Excluir</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card">
+            <p>Nenhum personagem criado ainda.</p>
+            {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('novo_personagem') }}" class="btn-primary">Criar Primeiro Personagem</a>
+            {% else %}
+                <p style="color: var(--cor-texto-claro);">Entre como administrador para criar personagens.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

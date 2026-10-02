@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}{% if classe %}Editar{% else %}Nova{% endif %} Classe{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if classe %}Editar{% else %}Nova{% endif %} Classe</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" style="margin-bottom: 1.5rem;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="card">
+        <form method="POST">
+            <div class="form-group">
+                <label for="nome" class="form-label">Nome *</label>
+                <input type="text" id="nome" name="nome" class="form-control" value="{{ classe.nome if classe else '' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao" class="form-label">Descrição</label>
+                <textarea id="descricao" name="descricao" class="form-control" rows="4">{{ classe.descricao if classe else '' }}</textarea>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Bônus em Atributos</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div class="form-group">
+                    <label for="bonus_st" class="form-label">Bônus ST</label>
+                    <input type="number" id="bonus_st" name="bonus_st" class="form-control" value="{{ classe.bonus_st if classe else '0' }}" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="bonus_dx" class="form-label">Bônus DX</label>
+                    <input type="number" id="bonus_dx" name="bonus_dx" class="form-control" value="{{ classe.bonus_dx if classe else '0' }}" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="bonus_iq" class="form-label">Bônus IQ</label>
+                    <input type="number" id="bonus_iq" name="bonus_iq" class="form-control" value="{{ classe.bonus_iq if classe else '0' }}" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="bonus_ht" class="form-label">Bônus HT</label>
+                    <input type="number" id="bonus_ht" name="bonus_ht" class="form-control" value="{{ classe.bonus_ht if classe else '0' }}" step="1">
+                </div>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Bônus em Atributos Derivados</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div class="form-group">
+                    <label for="bonus_pv_extra" class="form-label">PV Extra</label>
+                    <input type="number" id="bonus_pv_extra" name="bonus_pv_extra" class="form-control" value="{{ classe.bonus_pv_extra if classe else '0' }}" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="bonus_pf_extra" class="form-label">PF Extra</label>
+                    <input type="number" id="bonus_pf_extra" name="bonus_pf_extra" class="form-control" value="{{ classe.bonus_pf_extra if classe else '0' }}" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="bonus_percepcao_extra" class="form-label">Percepção Extra</label>
+                    <input type="number" id="bonus_percepcao_extra" name="bonus_percepcao_extra" class="form-control" value="{{ classe.bonus_percepcao_extra if classe else '0' }}" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="bonus_vontade_extra" class="form-label">Vontade Extra</label>
+                    <input type="number" id="bonus_vontade_extra" name="bonus_vontade_extra" class="form-control" value="{{ classe.bonus_vontade_extra if classe else '0' }}" step="1">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 2rem;">
+                <label for="custo_em_pontos" class="form-label">Custo em Pontos</label>
+                <input type="number" id="custo_em_pontos" name="custo_em_pontos" class="form-control" value="{{ classe.custo_em_pontos if classe else '0' }}" step="1">
+                <small style="color: var(--cor-texto-claro);">Pode ser negativo para classes que dão desvantagens</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Vantagens Automáticas</label>
+                <button type="button" class="btn-primary" onclick="abrirModalVantagens()" style="margin-bottom: 1rem;">
+                    📚 Selecionar Vantagens do Catálogo
+                </button>
+                <div id="vantagens-selecionadas-lista" style="min-height: 60px; padding: 1rem; background: var(--cor-fundo-cinza-escuro); border-radius: 8px; margin-top: 0.5rem;">
+                    {% if classe and vantagens_selecionadas is defined and vantagens_selecionadas|length > 0 %}
+                        {% for vantagem_id in vantagens_selecionadas %}
+                            {% for v in vantagens %}
+                                {% if v.id == vantagem_id %}
+                                <div class="vantagem-selecionada-item" data-vantagem-id="{{ v.id }}" style="display: inline-block; margin: 0.25rem; padding: 0.5rem 1rem; background: var(--cor-primaria-azul); color: white; border-radius: 4px;">
+                                    <span>{{ v.nome }} [{{ v.custo_base }}]</span>
+                                    <button type="button" onclick="removerVantagemSelecionada({{ v.id }})" style="margin-left: 0.5rem; background: rgba(255,255,255,0.3); border: none; color: white; border-radius: 3px; cursor: pointer; padding: 0.25rem 0.5rem;">×</button>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: var(--cor-texto-claro); margin: 0; text-align: center;">Nenhuma vantagem selecionada</p>
+                    {% endif %}
+                </div>
+                <small style="color: var(--cor-texto-claro); display: block; margin-top: 0.5rem;">
+                    As vantagens selecionadas serão aplicadas automaticamente (sem custo de pontos) quando um personagem escolher esta classe.
+                </small>
+                <!-- Campo hidden para armazenar IDs selecionados -->
+                <input type="hidden" id="vantagens_automaticas" name="vantagens_automaticas" value="">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Perícias Automáticas</label>
+                <button type="button" class="btn-primary" onclick="abrirModalPericias()" style="margin-bottom: 1rem;">
+                    📘 Selecionar Perícias do Catálogo
+                </button>
+                <div id="pericias-selecionadas-lista" style="min-height: 60px; padding: 1rem; background: var(--cor-fundo-cinza-escuro); border-radius: 8px; margin-top: 0.5rem;">
+                    {% if classe and pericias_selecionadas is defined and pericias_selecionadas|length > 0 %}
+                        {% for pericia_id in pericias_selecionadas %}
+                            {% for p in pericias %}
+                                {% if p.id == pericia_id %}
+                                <div class="pericia-selecionada-item" data-pericia-id="{{ p.id }}" style="display: inline-block; margin: 0.25rem; padding: 0.5rem 1rem; background: var(--cor-primaria-azul); color: white; border-radius: 4px;">
+                                    <span>{{ p.nome }} ({{ p.atributo_base }}) - {{ p.dificuldade }}</span>
+                                    <button type="button" onclick="removerPericiaSelecionada({{ p.id }})" style="margin-left: 0.5rem; background: rgba(255,255,255,0.3); border: none; color: white; border-radius: 3px; cursor: pointer; padding: 0.25rem 0.5rem;">×</button>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: var(--cor-texto-claro); margin: 0; text-align: center;">Nenhuma perícia selecionada</p>
+                    {% endif %}
+                </div>
+                <small style="color: var(--cor-texto-claro); display: block; margin-top: 0.5rem;">
+                    As perícias selecionadas serão aplicadas automaticamente (sem custo de pontos) quando um personagem escolher esta classe.
+                </small>
+                <!-- Campo hidden para armazenar IDs selecionados -->
+                <input type="hidden" id="pericias_automaticas" name="pericias_automaticas" value="">
+            </div>
+
+            <div class="form-group">
+                <label for="observacoes" class="form-label">Observações</label>
+                <textarea id="observacoes" name="observacoes" class="form-control" rows="3">{{ classe.observacoes if classe else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="is_active" name="is_active" {% if not classe or classe.is_active %}checked{% endif %}>
+                    <span>Classe Ativa</span>
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" onclick="return salvarSelecoes()">Salvar</button>
+                <a href="{{ url_for('admin_classes_lista') }}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Vantagens -->
+<div id="modal-vantagens-classe" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+    <div style="background: white; margin: 2rem auto; max-width: 900px; padding: 2rem; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Selecionar Vantagens Automáticas</h3>
+            <button onclick="fecharModalVantagens()" style="background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Fechar</button>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <input type="text" id="busca-vantagens-modal" placeholder="Buscar por nome..." onkeyup="filtrarVantagensModal()" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        
+        <div id="lista-vantagens-modal" style="max-height: 500px; overflow-y: auto;">
+            <p style="text-align: center; padding: 2rem; color: #666;">⏳ Carregando catálogo...</p>
+        </div>
+        
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+            <button onclick="confirmarVantagensSelecionadas()" class="btn-primary">Confirmar Seleção</button>
+            <button onclick="fecharModalVantagens()" class="btn-secondary">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Perícias -->
+<div id="modal-pericias-classe" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+    <div style="background: white; margin: 2rem auto; max-width: 900px; padding: 2rem; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Selecionar Perícias Automáticas</h3>
+            <button onclick="fecharModalPericias()" style="background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Fechar</button>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <input type="text" id="busca-pericias-modal" placeholder="Buscar por nome..." onkeyup="filtrarPericiasModal()" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        
+        <div id="lista-pericias-modal" style="max-height: 500px; overflow-y: auto;">
+            <p style="text-align: center; padding: 2rem; color: #666;">⏳ Carregando catálogo...</p>
+        </div>
+        
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+            <button onclick="confirmarPericiasSelecionadas()" class="btn-primary">Confirmar Seleção</button>
+            <button onclick="fecharModalPericias()" class="btn-secondary">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variáveis globais para gerenciar seleções
+let vantagensSelecionadas = new Set();
+let periciasSelecionadas = new Set();
+let catalogoVantagens = [];
+let catalogoPericias = [];
+let catalogoVantagensFiltrado = [];
+let catalogoPericiasFiltrado = [];
+
+// Dados do servidor (passados pelo template)
+const vantagensDisponiveis = {{ vantagens|tojson|safe }};
+const periciasDisponiveis = {{ pericias|tojson|safe }};
+const vantagensIniciais = {{ (vantagens_selecionadas if vantagens_selecionadas is defined else [])|tojson|safe }};
+const periciasIniciais = {{ (pericias_selecionadas if pericias_selecionadas is defined else [])|tojson|safe }};
+
+// Inicializa seleções ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    vantagensIniciais.forEach(id => vantagensSelecionadas.add(id));
+    periciasIniciais.forEach(id => periciasSelecionadas.add(id));
+    atualizarListaVantagensSelecionadas();
+    atualizarListaPericiasSelecionadas();
+    atualizarCamposHidden();
+});
+
+function abrirModalVantagens() {
+    const modal = document.getElementById('modal-vantagens-classe');
+    modal.style.display = 'block';
+    
+    // Carrega catálogo se ainda não foi carregado
+    if (catalogoVantagens.length === 0) {
+        catalogoVantagens = vantagensDisponiveis;
+        catalogoVantagensFiltrado = vantagensDisponiveis;
+    }
+    
+    renderizarVantagensModal();
+}
+
+function fecharModalVantagens() {
+    document.getElementById('modal-vantagens-classe').style.display = 'none';
+}
+
+function abrirModalPericias() {
+    const modal = document.getElementById('modal-pericias-classe');
+    modal.style.display = 'block';
+    
+    // Carrega catálogo se ainda não foi carregado
+    if (catalogoPericias.length === 0) {
+        catalogoPericias = periciasDisponiveis;
+        catalogoPericiasFiltrado = periciasDisponiveis;
+    }
+    
+    renderizarPericiasModal();
+}
+
+function fecharModalPericias() {
+    document.getElementById('modal-pericias-classe').style.display = 'none';
+}
+
+function renderizarVantagensModal() {
+    const container = document.getElementById('lista-vantagens-modal');
+    if (!container) return;
+    
+    if (catalogoVantagensFiltrado.length === 0) {
+        container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">Nenhuma vantagem encontrada.</p>';
+        return;
+    }
+    
+    let html = '<table class="table-gurps" style="width: 100%;">';
+    html += '<thead><tr><th style="width: 40px;">Sel.</th><th>Nome</th><th>Custo</th><th>Categoria</th><th>Descrição</th></tr></thead><tbody>';
+    
+    catalogoVantagensFiltrado.forEach(vantagem => {
+        const isSelected = vantagensSelecionadas.has(vantagem.id);
+        const descricao = vantagem.descricao || '-';
+        const descricaoTruncada = descricao.length > 80 ? descricao.substring(0, 80) + '...' : descricao;
+        
+        html += `
+            <tr>
+                <td>
+                    <input type="checkbox" 
+                           ${isSelected ? 'checked' : ''} 
+                           onchange="toggleVantagem(${vantagem.id})"
+                           style="cursor: pointer;">
+                </td>
+                <td><strong>${vantagem.nome || 'Sem nome'}</strong></td>
+                <td>${vantagem.custo_base || 0} pts</td>
+                <td>${vantagem.categoria || '-'}</td>
+                <td style="font-size: 0.9em; color: #666;" title="${descricao}">${descricaoTruncada}</td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    html += `<p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9em;">Total: ${catalogoVantagensFiltrado.length} vantagem(ns) | Selecionadas: ${vantagensSelecionadas.size}</p>`;
+    container.innerHTML = html;
+}
+
+function renderizarPericiasModal() {
+    const container = document.getElementById('lista-pericias-modal');
+    if (!container) return;
+    
+    if (catalogoPericiasFiltrado.length === 0) {
+        container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">Nenhuma perícia encontrada.</p>';
+        return;
+    }
+    
+    let html = '<table class="table-gurps" style="width: 100%;">';
+    html += '<thead><tr><th style="width: 40px;">Sel.</th><th>Nome</th><th>Atributo</th><th>Dificuldade</th><th>Custo</th><th>Descrição</th></tr></thead><tbody>';
+    
+    catalogoPericiasFiltrado.forEach(pericia => {
+        const isSelected = periciasSelecionadas.has(pericia.id);
+        const descricao = pericia.descricao || '-';
+        const descricaoTruncada = descricao.length > 60 ? descricao.substring(0, 60) + '...' : descricao;
+        const dificuldadeNome = {'F': 'Fácil', 'M': 'Média', 'D': 'Difícil', 'VD': 'Muito Difícil'}[pericia.dificuldade] || pericia.dificuldade;
+        
+        html += `
+            <tr>
+                <td>
+                    <input type="checkbox" 
+                           ${isSelected ? 'checked' : ''} 
+                           onchange="togglePericia(${pericia.id})"
+                           style="cursor: pointer;">
+                </td>
+                <td><strong>${pericia.nome || 'Sem nome'}</strong></td>
+                <td>${pericia.atributo_base || '-'}</td>
+                <td>${dificuldadeNome}</td>
+                <td>${pericia.custo_texto || '-'}</td>
+                <td style="font-size: 0.9em; color: #666;" title="${descricao}">${descricaoTruncada}</td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    html += `<p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9em;">Total: ${catalogoPericiasFiltrado.length} perícia(s) | Selecionadas: ${periciasSelecionadas.size}</p>`;
+    container.innerHTML = html;
+}
+
+function toggleVantagem(id) {
+    if (vantagensSelecionadas.has(id)) {
+        vantagensSelecionadas.delete(id);
+    } else {
+        vantagensSelecionadas.add(id);
+    }
+    renderizarVantagensModal();
+}
+
+function togglePericia(id) {
+    if (periciasSelecionadas.has(id)) {
+        periciasSelecionadas.delete(id);
+    } else {
+        periciasSelecionadas.add(id);
+    }
+    renderizarPericiasModal();
+}
+
+function confirmarVantagensSelecionadas() {
+    atualizarListaVantagensSelecionadas();
+    atualizarCamposHidden();
+    fecharModalVantagens();
+}
+
+function confirmarPericiasSelecionadas() {
+    atualizarListaPericiasSelecionadas();
+    atualizarCamposHidden();
+    fecharModalPericias();
+}
+
+function atualizarListaVantagensSelecionadas() {
+    const container = document.getElementById('vantagens-selecionadas-lista');
+    if (!container) return;
+    
+    if (vantagensSelecionadas.size === 0) {
+        container.innerHTML = '<p style="color: var(--cor-texto-claro); margin: 0; text-align: center;">Nenhuma vantagem selecionada</p>';
+        return;
+    }
+    
+    let html = '';
+    vantagensSelecionadas.forEach(id => {
+        const vantagem = vantagensDisponiveis.find(v => v.id === id);
+        if (vantagem) {
+            html += `
+                <div class="vantagem-selecionada-item" data-vantagem-id="${vantagem.id}" style="display: inline-block; margin: 0.25rem; padding: 0.5rem 1rem; background: var(--cor-primaria-azul); color: white; border-radius: 4px;">
+                    <span>${vantagem.nome} [${vantagem.custo_base}]</span>
+                    <button type="button" onclick="removerVantagemSelecionada(${vantagem.id})" style="margin-left: 0.5rem; background: rgba(255,255,255,0.3); border: none; color: white; border-radius: 3px; cursor: pointer; padding: 0.25rem 0.5rem;">×</button>
+                </div>
+            `;
+        }
+    });
+    container.innerHTML = html;
+}
+
+function atualizarListaPericiasSelecionadas() {
+    const container = document.getElementById('pericias-selecionadas-lista');
+    if (!container) return;
+    
+    if (periciasSelecionadas.size === 0) {
+        container.innerHTML = '<p style="color: var(--cor-texto-claro); margin: 0; text-align: center;">Nenhuma perícia selecionada</p>';
+        return;
+    }
+    
+    let html = '';
+    periciasSelecionadas.forEach(id => {
+        const pericia = periciasDisponiveis.find(p => p.id === id);
+        if (pericia) {
+            html += `
+                <div class="pericia-selecionada-item" data-pericia-id="${pericia.id}" style="display: inline-block; margin: 0.25rem; padding: 0.5rem 1rem; background: var(--cor-primaria-azul); color: white; border-radius: 4px;">
+                    <span>${pericia.nome} (${pericia.atributo_base}) - ${pericia.dificuldade}</span>
+                    <button type="button" onclick="removerPericiaSelecionada(${pericia.id})" style="margin-left: 0.5rem; background: rgba(255,255,255,0.3); border: none; color: white; border-radius: 3px; cursor: pointer; padding: 0.25rem 0.5rem;">×</button>
+                </div>
+            `;
+        }
+    });
+    container.innerHTML = html;
+}
+
+function removerVantagemSelecionada(id) {
+    vantagensSelecionadas.delete(id);
+    atualizarListaVantagensSelecionadas();
+    atualizarCamposHidden();
+}
+
+function removerPericiaSelecionada(id) {
+    periciasSelecionadas.delete(id);
+    atualizarListaPericiasSelecionadas();
+    atualizarCamposHidden();
+}
+
+function atualizarCamposHidden() {
+    const vantagensInput = document.getElementById('vantagens_automaticas');
+    const periciasInput = document.getElementById('pericias_automaticas');
+    
+    if (vantagensInput) {
+        vantagensInput.value = JSON.stringify(Array.from(vantagensSelecionadas));
+    }
+    if (periciasInput) {
+        periciasInput.value = JSON.stringify(Array.from(periciasSelecionadas));
+    }
+}
+
+function filtrarVantagensModal() {
+    const busca = document.getElementById('busca-vantagens-modal').value.toLowerCase();
+    catalogoVantagensFiltrado = catalogoVantagens.filter(v => 
+        v.nome.toLowerCase().includes(busca)
+    );
+    renderizarVantagensModal();
+}
+
+function filtrarPericiasModal() {
+    const busca = document.getElementById('busca-pericias-modal').value.toLowerCase();
+    catalogoPericiasFiltrado = catalogoPericias.filter(p => 
+        p.nome.toLowerCase().includes(busca)
+    );
+    renderizarPericiasModal();
+}
+
+function salvarSelecoes() {
+    atualizarCamposHidden();
+    return true;
+}
+</script>
+{% endblock %}
+

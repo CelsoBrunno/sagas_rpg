@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ npc.nome }} - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ npc.nome }}</h1>
+    
+    <p>
+        <strong>Status:</strong> 
+        <span class="badge badge-{% if npc.status == 'Vivo' %}success{% else %}secondary{% endif %}">
+            {{ npc.status }}
+        </span>
+    </p>
+    
+    {% if npc.local_nome %}
+        <p><strong>Local Atual:</strong> 
+            <a href="{{ url_for('ver_local', id=npc.local_atual_id) }}">{{ npc.local_nome }}</a>
+        </p>
+    {% endif %}
+    
+    {% if npc.imagem_url and npc.imagem_url != '' and npc.imagem_url != 'None' %}
+    <div class="card" style="margin-bottom: 2rem; text-align: center; padding: 1rem;">
+        <img src="{{ npc.imagem_url }}" alt="{{ npc.nome }}" 
+             style="width: 100%; max-width: 500px; border-radius: 8px; display: block; margin: 0 auto; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);"
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<p style=\'color: var(--cor-destaque-vermelho);\'>⚠️ Imagem não encontrada. Verifique se o arquivo existe.</p>';">
+    </div>
+    {% elif session.get('role') == 'admin' %}
+    <div class="card" style="margin-bottom: 2rem; background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1.5rem; text-align: center;">
+        <p style="color: var(--cor-texto-claro); margin: 0;">
+            📷 Este NPC ainda não possui uma imagem. 
+            <a href="{{ url_for('editar_npc', id=npc.id) }}" style="color: var(--cor-primaria-azul);">Clique aqui para adicionar uma imagem.</a>
+        </p>
+    </div>
+    {% endif %}
+    
+    {% if npc.descricao_breve %}
+    <div class="card">
+        <h3>Descrição Breve</h3>
+        <p>{{ npc.descricao_breve }}</p>
+    </div>
+    {% endif %}
+    
+    {% if session.get('role') == 'admin' and npc.descricao_completa %}
+    <div class="card">
+        <h3>Descrição Completa</h3>
+        <p>{{ npc.descricao_completa }}</p>
+    </div>
+    {% endif %}
+    
+    {% if npc.ficha_personagem_id %}
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('ver_personagem', id=npc.ficha_personagem_id) }}" class="btn-primary">
+            Ver Ficha GURPS Completa
+        </a>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('editar_npc', id=npc.id) }}" class="btn-primary">✏️ Editar NPC</a>
+            <form method="POST" action="{{ url_for('deletar_npc', id=npc.id) }}" 
+                  onsubmit="return confirm('Tem certeza que deseja deletar este NPC? Esta ação não pode ser desfeita.');" 
+                  style="display: inline;">
+                <button type="submit" class="btn-danger">🗑️ Deletar NPC</button>
+            </form>
+        {% endif %}
+        <a href="{{ url_for('listar_npcs') }}" class="btn-secondary">← Voltar para Lista de NPCs</a>
+    </div>
+</div>
+{% endblock %}
+

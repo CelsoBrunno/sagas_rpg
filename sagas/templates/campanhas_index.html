@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Campanhas - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Minhas Campanhas</h1>
+
+  {% if session.get('role') == 'admin' %}
+  <div class="card">
+    <h3>Criar Nova Campanha</h3>
+    <form method="POST" action="{{ url_for('listar_campanhas') }}">
+      <div class="row">
+        <div class="col-2">
+          <div class="form-group">
+            <label class="form-label">Nome da Campanha</label>
+            <input name="nome_campanha" class="form-control" required>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="form-group">
+            <label class="form-label">Pontos Iniciais</label>
+            <input name="pontos_iniciais" type="number" class="form-control" value="150" min="0" required>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <textarea name="descricao" class="form-control" rows="3" placeholder="Notas gerais da campanha..."></textarea>
+      </div>
+      <button class="btn-primary">Criar Campanha</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if campanhas %}
+  <div class="row">
+    {% for c in campanhas %}
+    <div class="col-2">
+      <div class="card">
+        <div class="card-header">
+          <h3>{{ c.nome_campanha }}</h3>
+          <p style="color: var(--cor-texto-claro); margin: 0;">
+            <strong>Pontos:</strong> {{ c.pontos_iniciais }}<br>
+            <strong>Status:</strong> {{ c.status }}
+          </p>
+        </div>
+        <div class="card-body">
+          <p><strong>Personagens:</strong> {{ c.total_personagens or 0 }}</p>
+          <a class="btn-primary" href="{{ url_for('ver_campanha', id=c.id) }}">Gerenciar</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card">
+    <p>Nenhuma campanha criada.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

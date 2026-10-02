@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Pontos - {{ usuario.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" style="margin-bottom: 1rem;">
+        <ol style="list-style: none; padding: 0; display: flex; gap: 0.5rem;">
+            <li><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+            <li>></li>
+            <li><a href="{{ url_for('admin_usuarios_lista') }}">Usuários</a></li>
+            <li>></li>
+            <li>Gerenciar Pontos</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <h2>💰 Gerenciar Pontos - {{ usuario.username }}</h2>
+        
+        <div style="background: var(--cor-fundo-cinza-escuro); padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div>
+                    <p style="color: var(--cor-texto-claro); margin: 0;">Pontos Disponíveis Atuais</p>
+                    <h3 style="color: var(--cor-primaria-azul); margin: 0.5rem 0; font-size: 2.5rem;">{{ pontos_atual }}</h3>
+                </div>
+                <div style="text-align: right;">
+                    <p style="color: var(--cor-texto-claro); margin: 0;">Usuário</p>
+                    <p style="margin: 0.5rem 0; font-weight: 600;">{{ usuario.nome_completo or usuario.username }}</p>
+                    <p style="color: var(--cor-texto-claro); margin: 0; font-size: 0.9rem;">{{ usuario.email or 'Sem email' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+            <!-- Adicionar Pontos -->
+            <div class="card" style="border: 2px solid #28a745;">
+                <h3 style="color: #28a745; margin-bottom: 1rem;">➕ Adicionar Pontos</h3>
+                <form method="POST" action="{{ url_for('admin_usuarios_pontos', id=usuario.id) }}">
+                    <input type="hidden" name="acao" value="adicionar">
+                    <div class="form-group">
+                        <label for="quantidade_adicionar" class="form-label">Quantidade</label>
+                        <input type="number" id="quantidade_adicionar" name="quantidade" class="form-control" min="1" value="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="observacao_adicionar" class="form-label">Observação (opcional)</label>
+                        <textarea id="observacao_adicionar" name="observacao" class="form-control" rows="2" placeholder="Ex: Pontos concedidos para criação de ficha"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="background: #28a745; width: 100%;">Adicionar Pontos</button>
+                </form>
+            </div>
+
+            <!-- Remover Pontos -->
+            <div class="card" style="border: 2px solid #dc3545;">
+                <h3 style="color: #dc3545; margin-bottom: 1rem;">➖ Remover Pontos</h3>
+                <form method="POST" action="{{ url_for('admin_usuarios_pontos', id=usuario.id) }}">
+                    <input type="hidden" name="acao" value="remover">
+                    <div class="form-group">
+                        <label for="quantidade_remover" class="form-label">Quantidade</label>
+                        <input type="number" id="quantidade_remover" name="quantidade" class="form-control" min="1" max="{{ pontos_atual }}" value="50" required>
+                        <small style="color: var(--cor-texto-claro);">Máximo: {{ pontos_atual }} pontos</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="observacao_remover" class="form-label">Observação (opcional)</label>
+                        <textarea id="observacao_remover" name="observacao" class="form-control" rows="2" placeholder="Ex: Ajuste de pontos após revisão"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="background: #dc3545; width: 100%;">Remover Pontos</button>
+                </form>
+            </div>
+
+            <!-- Definir Pontos -->
+            <div class="card" style="border: 2px solid var(--cor-primaria-azul);">
+                <h3 style="color: var(--cor-primaria-azul); margin-bottom: 1rem;">🎯 Definir Pontos</h3>
+                <form method="POST" action="{{ url_for('admin_usuarios_pontos', id=usuario.id) }}">
+                    <input type="hidden" name="acao" value="definir">
+                    <div class="form-group">
+                        <label for="quantidade_definir" class="form-label">Quantidade Exata</label>
+                        <input type="number" id="quantidade_definir" name="quantidade" class="form-control" min="0" value="{{ pontos_atual }}" required>
+                        <small style="color: var(--cor-texto-claro);">Define o valor exato de pontos (substitui o valor atual)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="observacao_definir" class="form-label">Observação (opcional)</label>
+                        <textarea id="observacao_definir" name="observacao" class="form-control" rows="2" placeholder="Ex: Reset de pontos para nova campanha"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">Definir Pontos</button>
+                </form>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--cor-borda);">
+            <a href="{{ url_for('admin_usuarios_lista') }}" class="btn-secondary">← Voltar para Lista de Usuários</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

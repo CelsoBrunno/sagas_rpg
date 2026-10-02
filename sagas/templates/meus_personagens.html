@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Meus Personagens - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Meus Personagens</h1>
+
+  {% if personagens %}
+  <div class="row">
+    {% for p in personagens %}
+    <div class="col-2">
+      <div class="card">
+        <div class="card-header">
+          <h3>{{ p.nome or ('Personagem #' ~ p.id) }}</h3>
+          <p style="color: var(--cor-texto-claro); margin: 0;">
+            <strong>Campanha:</strong> {{ p.nome_campanha }}
+          </p>
+        </div>
+        <div class="card-body">
+          <div style="margin-bottom: .75rem;">
+            <strong>Status:</strong>
+            <span class="badge badge-{% if p.status_criacao == 'Pendente' %}secondary{% elif p.status_criacao == 'Em_Andamento' %}primary{% elif p.status_criacao == 'Aprovado' %}success{% else %}danger{% endif %}">
+              {{ p.status_criacao }}
+            </span>
+          </div>
+          <div class="pontos-indicator" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem; margin-bottom: 1rem;">
+            <div><small>Pontos Totais</small><div><strong>{{ p.pontos_iniciais }}</strong></div></div>
+            <div><small>Pontos Gastos</small><div id="gastos-{{ p.id }}"><strong>{{ p.pontos_gastos or 0 }}</strong></div></div>
+            {% set restantes = (p.pontos_iniciais - (p.pontos_gastos or 0)) %}
+            <div>
+              <small>Pontos Restantes</small>
+              <div>
+                <strong style="color: {% if restantes < 0 %}var(--cor-destaque-vermelho){% else %}inherit{% endif %};">{{ restantes }}</strong>
+              </div>
+            </div>
+          </div>
+          <a class="btn-primary" href="{{ url_for('ver_personagem', id=p.id) }}" style="width: 100%;">Abrir Ficha</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card">
+    <p>Você ainda não possui personagens pendentes.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

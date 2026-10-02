@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Campanha GURPS{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-sagas.png') }}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="{{ url_for('index') }}" class="navbar-brand">
+                <img src="{{ url_for('static', filename='images/logo-sagas.png') }}" alt="SagaS Logo">
+            </a>
+            <button class="navbar-toggle" id="navbar-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="navbar-nav" id="navbar-nav">
+                {% if session.get('user_id') %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('minha_ficha') }}" class="nav-link" style="background: var(--cor-primaria-azul); color: white; border-radius: 4px; cursor: pointer;">
+                            👤 {{ session.get('username') }} 
+                            <span style="background: var(--cor-destaque-verde); padding: 2px 8px; border-radius: 3px; font-size: 0.8rem; margin-left: 5px;">
+                                {% if session.get('role') == 'admin' %}ADMIN{% else %}USUARIO{% endif %}
+                            </span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <li class="nav-item"><a href="{{ url_for('index') }}" class="nav-link">Personagens</a></li>
+                <li class="nav-item"><a href="{{ url_for('listar_locais') }}" class="nav-link">Locais</a></li>
+                <li class="nav-item"><a href="{{ url_for('listar_npcs') }}" class="nav-link">NPCs</a></li>
+                <li class="nav-item"><a href="{{ url_for('listar_mapas') }}" class="nav-link">Mapas</a></li>
+                <li class="nav-item"><a href="{{ url_for('ultimas_rolagens') }}" class="nav-link">Últimas rolagens</a></li>
+                {% if session.get('role') == 'admin' %}
+                    <li class="nav-item"><a href="{{ url_for('admin_dashboard') }}" class="nav-link">⚙️ Admin</a></li>
+                {% endif %}
+                
+                {% if session.get('user_id') %}
+                    <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link">Logout</a></li>
+                {% else %}
+                    <li class="nav-item"><a href="{{ url_for('login') }}" class="nav-link">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container" style="margin-top: 2rem;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: var(--cor-base-escura-alt); color: var(--cor-texto-branco); padding: 2rem; text-align: center; margin-top: 4rem; border-top: 2px solid var(--cor-primaria-azul);">
+        <p>&copy; "Sagas é um mundo de aventuras e desafios onde coisas impossíveis talvez não existam ou simplesmente sejam comuns para alguns."</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

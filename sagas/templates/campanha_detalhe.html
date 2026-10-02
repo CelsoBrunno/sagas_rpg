@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ campanha.nome_campanha }} - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>{{ campanha.nome_campanha }}</h1>
+  <p style="color: var(--cor-texto-claro);">Status: <strong>{{ campanha.status }}</strong> | Pontos Iniciais: <strong>{{ campanha.pontos_iniciais }}</strong></p>
+
+  {% if session.get('role') == 'admin' %}
+  <div class="card">
+    <h3>Configurações da Campanha</h3>
+    <form method="POST" action="{{ url_for('ver_campanha', id=campanha.id) }}">
+      <div class="row">
+        <div class="col-2">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input name="nome_campanha" class="form-control" value="{{ campanha.nome_campanha }}" required>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="form-group">
+            <label class="form-label">Pontos Iniciais</label>
+            <input name="pontos_iniciais" type="number" class="form-control" value="{{ campanha.pontos_iniciais }}" min="0" required>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <textarea name="descricao" class="form-control" rows="3">{{ campanha.descricao }}</textarea>
+      </div>
+      <button class="btn-primary">Salvar Alterações</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Convidar Jogador</h3>
+    <form method="POST" action="{{ url_for('ver_campanha', id=campanha.id) }}">
+      <div class="row">
+        <div class="col-2">
+          <div class="form-group">
+            <label class="form-label">ID do Usuário (Jogador)</label>
+            <input name="usuario_id" type="number" class="form-control" placeholder="Ex: 2" required>
+          </div>
+        </div>
+      </div>
+      <button class="btn-secondary">Convidar</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h3>Personagens da Campanha</h3>
+    <div class="table-responsive">
+      <table class="table-gurps">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Jogador</th>
+            <th>Status Criação</th>
+            <th>Pontos Gastos</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in personagens %}
+          <tr>
+            <td>{{ p.nome or ('Personagem #' ~ p.id) }}</td>
+            <td>{{ p.username or '—' }}</td>
+            <td>{{ p.status_criacao }}</td>
+            <td>{{ p.pontos_gastos or 0 }} / {{ campanha.pontos_iniciais }}</td>
+            <td>
+              <a class="btn-primary btn-small" href="{{ url_for('ver_personagem', id=p.id) }}">Abrir</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top: 1.5rem;">
+    <a href="{{ url_for('listar_campanhas') }}" class="btn-secondary">← Voltar</a>
+  </div>
+</div>
+{% endblock %}

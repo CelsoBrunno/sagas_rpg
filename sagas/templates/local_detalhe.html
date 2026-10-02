@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ local.nome }} - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ local.nome }}</h1>
+    
+    {% if local.tipo %}
+        <p><strong>Tipo:</strong> {{ local.tipo }}</p>
+    {% endif %}
+    
+    {% if local.imagem_principal_url and local.imagem_principal_url != '' and local.imagem_principal_url != 'None' %}
+    <div class="card" style="margin-bottom: 2rem; text-align: center; padding: 1rem;">
+        {% if local.imagem_principal_url.startswith('http') %}
+            <img src="{{ local.imagem_principal_url }}" alt="{{ local.nome }}" 
+                 style="width: 100%; max-width: 800px; border-radius: 8px; display: block; margin: 0 auto; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);"
+                 onerror="this.style.display='none'; this.parentElement.innerHTML='<p style=\'color: var(--cor-destaque-vermelho);\'>⚠️ Erro ao carregar imagem da URL.</p>';">
+        {% else %}
+            <img src="{{ local.imagem_principal_url }}" alt="{{ local.nome }}" 
+                 style="width: 100%; max-width: 800px; border-radius: 8px; display: block; margin: 0 auto; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);"
+                 onerror="this.style.display='none'; this.parentElement.innerHTML='<p style=\'color: var(--cor-destaque-vermelho);\'>⚠️ Imagem não encontrada. Verifique se o arquivo existe.</p>';">
+        {% endif %}
+    </div>
+    {% elif session.get('role') == 'admin' %}
+    <div class="card" style="margin-bottom: 2rem; background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1.5rem; text-align: center;">
+        <p style="color: var(--cor-texto-claro); margin: 0;">
+            📷 Este local ainda não possui uma imagem. 
+            <a href="{{ url_for('editar_local', id=local.id) }}" style="color: var(--cor-primaria-azul);">Clique aqui para adicionar uma imagem.</a>
+        </p>
+    </div>
+    {% endif %}
+    
+    <div class="card">
+        <h3>Descrição Pública</h3>
+        <p>{{ local.descricao_publica or 'Sem descrição pública.' }}</p>
+    </div>
+    
+    {% if session.get('role') == 'admin' and local.descricao_mestre %}
+    <div class="card">
+        <h3>Notas do Mestre</h3>
+        <p>{{ local.descricao_mestre }}</p>
+    </div>
+    {% endif %}
+    
+    {% if npcs %}
+    <div class="card">
+        <h3>NPCs Presentes</h3>
+        <div class="table-responsive">
+            <table class="table-gurps">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for npc in npcs %}
+                    <tr>
+                        <td>
+                            {% if npc.ficha_personagem_id %}
+                                <a href="{{ url_for('ver_personagem', id=npc.ficha_personagem_id) }}">
+                                    {{ npc.nome }}
+                                </a>
+                            {% else %}
+                                {{ npc.nome }}
+                            {% endif %}
+                        </td>
+                        <td>{{ npc.descricao_breve or '-' }}</td>
+                        <td>
+                            <span class="badge badge-{% if npc.status == 'Vivo' %}success{% else %}secondary{% endif %}">
+                                {{ npc.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if mapas %}
+    <div class="card">
+        <h3>Mapas Associados</h3>
+        <div class="row">
+            {% for mapa in mapas %}
+                <div class="col-2">
+                    <div class="card">
+                        <h4>{{ mapa.nome_mapa }}</h4>
+                        {% if mapa.url_imagem %}
+                            <img src="{{ mapa.url_imagem }}" alt="{{ mapa.nome_mapa }}" 
+                                 style="width: 100%; border-radius: 8px; margin: 1rem 0;">
+                        {% endif %}
+                        {% if mapa.tipo_mapa %}
+                            <p style="color: var(--cor-texto-claro);">
+                                <strong>Tipo:</strong> {{ mapa.tipo_mapa }}
+                            </p>
+                        {% endif %}
+                        <a href="{{ url_for('ver_mapa', id=mapa.id) }}" class="btn-primary" style="width: 100%;">Ver Mapa</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('editar_local', id=local.id) }}" class="btn-primary">✏️ Editar Local</a>
+            <form method="POST" action="{{ url_for('deletar_local', id=local.id) }}" 
+                  onsubmit="return confirm('Tem certeza que deseja deletar este local? Esta ação não pode ser desfeita.');" 
+                  style="display: inline;">
+                <button type="submit" class="btn-danger">🗑️ Deletar Local</button>
+            </form>
+        {% endif %}
+        <a href="{{ url_for('listar_locais') }}" class="btn-secondary">← Voltar para Lista de Locais</a>
+    </div>
+</div>
+{% endblock %}
+

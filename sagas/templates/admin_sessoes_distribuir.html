@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Distribuir Pontos de Sessão - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Distribuir Pontos de Sessão</h1>
+
+  <div class="card">
+    <h3>Dados da Sessão</h3>
+    <div class="row">
+      <div class="col-3">
+        <div class="form-group">
+          <label class="form-label">Data da Sessão</label>
+          <input id="data-sessao" type="date" class="form-control" required>
+        </div>
+      </div>
+      <div class="col">
+        <div class="form-group">
+          <label class="form-label">Descrição/Título</label>
+          <input id="descricao" type="text" class="form-control" placeholder="Ex: Capítulo 3: O Templo da Serpente">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Personagens (PCs)</h3>
+    <div class="table-responsive">
+      <table class="table-gurps">
+        <thead>
+          <tr>
+            <th>Personagem</th>
+            <th style="width:160px">Pontos Ganhos</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pc in pcs %}
+          <tr>
+            <td>{{ pc.nome }}</td>
+            <td>
+              <input type="number" class="form-control" min="0" value="0" id="pc-{{ pc.id }}" />
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <button class="btn-primary" onclick="registrarSessao()">Registrar Sessão e Distribuir Pontos</button>
+      <a class="btn-secondary" href="{{ url_for('admin_sessoes_historico') }}" style="margin-left: .5rem;">Ver Histórico</a>
+    </div>
+  </div>
+</div>
+
+<script>
+async function registrarSessao() {
+  const dataSessao = (document.getElementById('data-sessao').value || '').trim();
+  const descricao = document.getElementById('descricao').value || '';
+  if (!dataSessao) { alert('Informe a data da sessão.'); return; }
+
+  const inputs = Array.from(document.querySelectorAll('input[id^="pc-"]'));
+  const distribuicoes = inputs.map(inp => ({
+    personagem_id: inp.id.replace('pc-',''),
+    pontos: parseInt(inp.value || '0', 10)
+  })).filter(x => x.pontos && x.pontos !== 0);
+
+  if (distribuicoes.length === 0) { alert('Nenhum ponto a distribuir.'); return; }
+
+  const res = await fetch('/api/admin/sessoes/distribuir', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data_sessao: dataSessao, descricao, distribuicoes })
+  });
+  const data = await res.json();
+  if (data.success) {
+    alert('Sessão registrada com sucesso!');
+    window.location.href = '{{ url_for('admin_sessoes_historico') }}';
+  } else {
+    alert('Erro: ' + (data.message || 'Falha ao registrar sessão'));
+  }
+}
+</script>
+{% endblock %}
+
+

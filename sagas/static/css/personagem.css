@@ -1,0 +1,102 @@
+.atributo-display {
+    background: linear-gradient(135deg, var(--cor-primaria-azul) 0%, var(--cor-primaria-azul-escuro) 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    box-shadow: var(--sombra-media);
+}
+
+.atributo-derivado {
+    background-color: var(--cor-primaria-azul);
+    color: white;
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .stat-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.card-atributos-controle {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-atributos-controle.erro {
+    border-color: #dc3545;
+    box-shadow: 0 0 12px rgba(220, 53, 69, 0.25);
+}
+
+.card-atributos-controle .mensagem-suporte {
+    font-size: 0.95rem;
+    width: 100%;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.texto-vantagem {
+    color: var(--cor-destaque-verde);
+    font-weight: 600;
+}
+
+.texto-desvantagem {
+    color: var(--cor-destaque-vermelho);
+    font-weight: 600;
+}
+
+.tabela-dados-basicos {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.tabela-dados-basicos th {
+    text-align: left;
+    padding: 0 0 0.25rem 0;
+    font-weight: 600;
+}
+
+.tabela-dados-basicos th + th {
+    text-align: right;
+}
+
+.tabela-dados-basicos td {
+    padding: 0.25rem 0;
+}
+
+.tabela-dados-basicos td + td {
+    text-align: right;
+    min-width: 60px;
+}
+
+.card-empty-inventario {
+    background-color: var(--cor-fundo-cinza-escuro);
+    border: 1px dashed var(--cor-borda);
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.is-hidden {
+    display: none !important;
+}
+

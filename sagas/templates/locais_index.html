@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Locais - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>Locais da Campanha</h1>
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('novo_local') }}" class="btn-primary">+ Novo Local</a>
+        {% endif %}
+    </div>
+    
+    {% if locais %}
+        <div class="row">
+            {% for local in locais %}
+                <div class="col-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>{{ local.nome }}</h3>
+                            {% if local.tipo %}
+                                <p style="color: var(--cor-texto-claro); margin: 0;">
+                                    <strong>Tipo:</strong> {{ local.tipo }}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% if local.descricao_publica %}
+                                <p>{{ local.descricao_publica[:100] }}{% if local.descricao_publica|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            
+                            <div style="margin-top: 1.5rem;">
+                                <a href="{{ url_for('ver_local', id=local.id) }}" class="btn-primary" style="width: 100%;">Ver Detalhes</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card">
+            <p>Nenhum local cadastrado ainda.</p>
+            <p style="color: var(--cor-texto-claro);">Use o menu superior para navegar pelos outros módulos.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

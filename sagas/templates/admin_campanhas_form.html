@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{% if campanha %}Editar{% else %}Nova{% endif %} Campanha{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if campanha %}Editar{% else %}Nova{% endif %} Campanha</h1>
+    
+    <div class="card">
+        <form method="POST">
+            <div class="form-group">
+                <label for="nome_campanha" class="form-label">Nome da Campanha *</label>
+                <input type="text" id="nome_campanha" name="nome_campanha" class="form-control" 
+                       value="{{ campanha.nome_campanha if campanha else '' }}" required>
+            </div>
+
+            {% if not campanha %}
+            <div class="form-group">
+                <label for="id_mestre" class="form-label">Mestre *</label>
+                <select id="id_mestre" name="id_mestre" class="form-control" required>
+                    <option value="">Selecione um mestre</option>
+                    {% for usuario in usuarios %}
+                        <option value="{{ usuario.id }}">{{ usuario.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="pontos_iniciais" class="form-label">Pontos Iniciais</label>
+                    <input type="number" id="pontos_iniciais" name="pontos_iniciais" class="form-control" 
+                           value="{{ campanha.pontos_iniciais if campanha else '100' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="status" class="form-label">Status *</label>
+                    <select id="status" name="status" class="form-control" required>
+                        <option value="Ativa" {% if campanha and campanha.status == 'Ativa' %}selected{% endif %}>Ativa</option>
+                        <option value="Pausada" {% if campanha and campanha.status == 'Pausada' %}selected{% endif %}>Pausada</option>
+                        <option value="Finalizada" {% if campanha and campanha.status == 'Finalizada' %}selected{% endif %}>Finalizada</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao" class="form-label">Descrição</label>
+                <textarea id="descricao" name="descricao" class="form-control" rows="5">{{ campanha.descricao if campanha else '' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Salvar</button>
+                <a href="{{ url_for('admin_campanhas_lista') }}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

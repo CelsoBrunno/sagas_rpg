@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}{{ mapa.nome_mapa }} - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ mapa.nome_mapa }}</h1>
+    
+    <p>
+        {% if mapa.tipo_mapa %}
+            <strong>Tipo:</strong> {{ mapa.tipo_mapa }}
+        {% endif %}
+        {% if mapa.local_nome %}
+            | <strong>Local:</strong> 
+            <a href="{{ url_for('ver_local', id=mapa.local_associado_id) }}">{{ mapa.local_nome }}</a>
+        {% endif %}
+    </p>
+    
+    {% if mapa.url_imagem %}
+    <div class="card">
+        <img src="{{ mapa.url_imagem }}" alt="{{ mapa.nome_mapa }}" 
+             style="width: 100%; border-radius: 8px;">
+    </div>
+    {% endif %}
+    
+    {% if mapa.descricao %}
+    <div class="card">
+        <h3>Descrição</h3>
+        <p>{{ mapa.descricao }}</p>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('editar_mapa', id=mapa.id) }}" class="btn-primary">✏️ Editar Mapa</a>
+            <form method="POST" action="{{ url_for('deletar_mapa', id=mapa.id) }}" 
+                  onsubmit="return confirm('Tem certeza que deseja deletar este mapa? Esta ação não pode ser desfeita.');" 
+                  style="display: inline;">
+                <button type="submit" class="btn-danger">🗑️ Deletar Mapa</button>
+            </form>
+        {% endif %}
+        <a href="{{ url_for('listar_mapas') }}" class="btn-secondary">← Voltar para Lista de Mapas</a>
+    </div>
+</div>
+{% endblock %}
+

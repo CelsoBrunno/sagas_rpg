@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Mapas - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>Mapas da Campanha</h1>
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('novo_mapa') }}" class="btn-primary">+ Novo Mapa</a>
+        {% endif %}
+    </div>
+    
+    {% if mapas %}
+        <div class="row">
+            {% for mapa in mapas %}
+                <div class="col-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>{{ mapa.nome_mapa }}</h3>
+                            {% if mapa.tipo_mapa %}
+                                <p style="color: var(--cor-texto-claro); margin: 0;">
+                                    <strong>Tipo:</strong> {{ mapa.tipo_mapa }}
+                                </p>
+                            {% endif %}
+                            {% if mapa.local_nome %}
+                                <p style="color: var(--cor-texto-claro); margin: 0;">
+                                    <strong>Local:</strong> {{ mapa.local_nome }}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% if mapa.url_imagem %}
+                                <img src="{{ mapa.url_imagem }}" alt="{{ mapa.nome_mapa }}" 
+                                     style="width: 100%; border-radius: 8px; margin-bottom: 1rem;">
+                            {% endif %}
+                            
+                            {% if mapa.descricao %}
+                                <p>{{ mapa.descricao[:100] }}{% if mapa.descricao|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            
+                            <div style="margin-top: 1rem;">
+                                <a href="{{ url_for('ver_mapa', id=mapa.id) }}" class="btn-primary" style="width: 100%;">Ver Mapa</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card">
+            <p>Nenhum mapa cadastrado ainda.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

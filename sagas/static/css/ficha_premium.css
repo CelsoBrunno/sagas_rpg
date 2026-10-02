@@ -1,0 +1,4 @@
+/* Correção: Remover referência antiga .ficha-container */
+.ficha-container {
+    /* Esta classe foi substituída por .ficha-gurps-container */
+}

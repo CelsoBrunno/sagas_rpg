@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{% if pericia %}Editar{% else %}Nova{% endif %} Perícia - Catálogo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if pericia %}Editar{% else %}Nova{% endif %} Perícia</h1>
+    
+    <div class="card">
+        <form method="POST">
+            <div class="form-group">
+                <label for="nome" class="form-label">Nome *</label>
+                <input type="text" id="nome" name="nome" class="form-control" 
+                       value="{{ pericia.nome if pericia else '' }}" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="atributo_base" class="form-label">Atributo Base *</label>
+                    <select id="atributo_base" name="atributo_base" class="form-control" required>
+                        <option value="ST" {% if pericia and pericia.atributo_base == 'ST' %}selected{% endif %}>ST (Força)</option>
+                        <option value="DX" {% if pericia and pericia.atributo_base == 'DX' %}selected{% endif %}>DX (Destreza)</option>
+                        <option value="IQ" {% if pericia and pericia.atributo_base == 'IQ' %}selected{% endif %}>IQ (Inteligência)</option>
+                        <option value="HT" {% if pericia and pericia.atributo_base == 'HT' %}selected{% endif %}>HT (Saúde)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dificuldade" class="form-label">Dificuldade *</label>
+                    <select id="dificuldade" name="dificuldade" class="form-control" required>
+                        <option value="F" {% if pericia and pericia.dificuldade == 'F' %}selected{% endif %}>F (Fácil)</option>
+                        <option value="M" {% if pericia and pericia.dificuldade == 'M' %}selected{% endif %}>M (Média)</option>
+                        <option value="D" {% if pericia and pericia.dificuldade == 'D' %}selected{% endif %}>D (Difícil)</option>
+                        <option value="VD" {% if pericia and pericia.dificuldade == 'VD' %}selected{% endif %}>VD (Muito Difícil)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="custo_texto" class="form-label">Custo em Texto</label>
+                <input type="text" id="custo_texto" name="custo_texto" class="form-control" 
+                       value="{{ pericia.custo_texto if pericia else '' }}" 
+                       placeholder="Ex: 1 ponto por nível, +2 por nível">
+            </div>
+
+            <div class="form-group">
+                <label for="descricao" class="form-label">Descrição</label>
+                <textarea id="descricao" name="descricao" class="form-control" rows="4">{{ pericia.descricao if pericia else '' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Salvar</button>
+                <a href="{{ url_for('admin_pericias_lista') }}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

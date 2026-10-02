@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Itens - Catálogo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>Catálogo de Itens</h1>
+        <a href="{{ url_for('admin_itens_novo') }}" class="btn-primary">+ Novo Item</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-gurps">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Categoria</th>
+                    <th>Tipo</th>
+                    <th>Preço</th>
+                    <th>Peso</th>
+                    <th>Dano BAL</th>
+                    <th>Dano GDP</th>
+                    <th>RD</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in itens %}
+                <tr>
+                    <td><strong>{{ item.nome }}</strong></td>
+                    <td>{{ item.categoria or '-' }}</td>
+                    <td>{{ item.tipo_item or 'outro' }}</td>
+                    <td>₣ {{ '%.2f'|format(item.preco or 0) }}</td>
+                    <td>{{ '%.2f'|format(item.peso or 0) }} lbs</td>
+                    <td>
+                        {% if item.dano_bal_mod %}
+                            {{ item.dano_bal_mod }}{{ item.dano_bal_tipo or '' }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.dano_gdp_mod %}
+                            {{ item.dano_gdp_mod }}{{ item.dano_gdp_tipo or '' }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.rd_mod %}
+                            RD {{ item.rd_mod }}{% if item.rd_tipo %} ({{ item.rd_tipo }}){% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin_itens_editar', id=item.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                        <button onclick="deletarItem({{ item.id }})" class="btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Deletar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function deletarItem(id) {
+    if (!confirm('Tem certeza que deseja deletar este item? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+    
+    fetch(`/admin/itens/${id}/deletar`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    });
+}
+</script>
+{% endblock %}
+

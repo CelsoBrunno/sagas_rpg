@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Criar Minha Ficha - GURPS Sagas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/personagem.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Criar Minha Ficha</h1>
+    
+    <div class="card" style="background: var(--cor-destaque-verde); color: white; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px;">
+        <h3 style="margin: 0;">💰 Pontos Disponíveis: <span id="pontos-disponiveis">{{ pontos_disponiveis }}</span></h3>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Use seus pontos para criar sua ficha de personagem</p>
+        <div id="custo-total-info" style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px;">
+            <strong>Custo Total: <span id="custo-total">0</span> pontos</strong>
+            <span id="custo-detalhes" style="font-size: 0.85rem; display: block; margin-top: 0.25rem;"></span>
+        </div>
+    </div>
+    
+    <div class="card">
+        <form method="POST">
+            <div class="row">
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Personagem *</label>
+                        <input type="text" name="nome" class="form-control" required>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Pontos Base *</label>
+                        <input type="number" name="pontos_base" class="form-control" value="{{ pontos_disponiveis }}" readonly style="background-color: #495057; color: white; cursor: not-allowed; font-weight: bold;">
+                        <small style="color: var(--cor-texto-claro);">Valor fixo baseado nos seus pontos disponíveis</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Raça</label>
+                        <select name="raca_id" id="raca_id" class="form-control" onchange="calcularCustoTotal(); atualizarAtributos();">
+                            <option value="">Nenhuma (Humano padrão)</option>
+                            {% for raca in racas %}
+                                {% if raca.is_active %}
+                                <option value="{{ raca.id }}" data-custo="{{ raca.custo_em_pontos or 0 }}">{{ raca.nome }} 
+                                    {% if raca.custo_em_pontos != 0 %}({{ raca.custo_em_pontos }} pts){% endif %}
+                                </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <input type="hidden" name="raca" value="Humano">
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Classe</label>
+                        <select name="classe_id" id="classe_id" class="form-control" onchange="calcularCustoTotal(); atualizarAtributos();">
+                            <option value="">Nenhuma</option>
+                            {% for classe in classes %}
+                                {% if classe.is_active %}
+                                <option value="{{ classe.id }}" data-custo="{{ classe.custo_em_pontos or 0 }}">{{ classe.nome }} 
+                                    {% if classe.custo_em_pontos != 0 %}({{ classe.custo_em_pontos }} pts){% endif %}
+                                </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Limite de Desvantagens</label>
+                        <input type="number" name="pontos_desvantagens_max" class="form-control" value="-50" readonly style="background-color: #495057; color: white; cursor: not-allowed; font-weight: bold;">
+                        <small style="color: var(--cor-texto-claro);">Valor fixo padrão</small>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <h3>Atributos</h3>
+                <p style="color: var(--cor-texto-claro); font-size: 0.9rem; margin-bottom: 1rem;">
+                    Os atributos são calculados automaticamente baseados na raça e classe selecionadas.
+                </p>
+                <div class="stat-row">
+                    <div class="atributo-display" style="position: relative;">
+                        <div>ST</div>
+                        <div id="atributo-st" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">10</div>
+                        <small id="bonus-st" style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 0.8rem; margin-top: 0.25rem;"></small>
+                        <input type="hidden" name="ST" id="input-st" value="10">
+                    </div>
+                    <div class="atributo-display" style="position: relative;">
+                        <div>DX</div>
+                        <div id="atributo-dx" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">10</div>
+                        <small id="bonus-dx" style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 0.8rem; margin-top: 0.25rem;"></small>
+                        <input type="hidden" name="DX" id="input-dx" value="10">
+                    </div>
+                    <div class="atributo-display" style="position: relative;">
+                        <div>IQ</div>
+                        <div id="atributo-iq" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">10</div>
+                        <small id="bonus-iq" style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 0.8rem; margin-top: 0.25rem;"></small>
+                        <input type="hidden" name="IQ" id="input-iq" value="10">
+                    </div>
+                    <div class="atributo-display" style="position: relative;">
+                        <div>HT</div>
+                        <div id="atributo-ht" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">10</div>
+                        <small id="bonus-ht" style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 0.8rem; margin-top: 0.25rem;"></small>
+                        <input type="hidden" name="HT" id="input-ht" value="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Biografia</label>
+                <textarea name="biografia" class="form-control" rows="5" placeholder="História, aparência, personalidade..."></textarea>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <button type="submit" id="btn-criar-ficha" class="btn-primary" onclick="return validarPontosAntesDeEnviar(event)">Criar Minha Ficha</button>
+                <a href="{{ url_for('index') }}" class="btn-secondary" style="margin-left: 1rem;">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const pontosDisponiveis = {{ pontos_disponiveis }};
+const racasData = {
+    {% for raca in racas %}
+        {% if raca.is_active %}
+        {{ raca.id }}: {
+            custo: {{ raca.custo_em_pontos or 0 }},
+            bonus_st: {{ raca.bonus_st or 0 }},
+            bonus_dx: {{ raca.bonus_dx or 0 }},
+            bonus_iq: {{ raca.bonus_iq or 0 }},
+            bonus_ht: {{ raca.bonus_ht or 0 }}
+        },
+        {% endif %}
+    {% endfor %}
+};
+const classesData = {
+    {% for classe in classes %}
+        {% if classe.is_active %}
+        {{ classe.id }}: {
+            custo: {{ classe.custo_em_pontos or 0 }},
+            bonus_st: {{ classe.bonus_st or 0 }},
+            bonus_dx: {{ classe.bonus_dx or 0 }},
+            bonus_iq: {{ classe.bonus_iq or 0 }},
+            bonus_ht: {{ classe.bonus_ht or 0 }}
+        },
+        {% endif %}
+    {% endfor %}
+};
+
+function calcularCustoTotal() {
+    const pontosDisponiveisValor = pontosDisponiveis;
+    const racaSelect = document.getElementById('raca_id');
+    const classeSelect = document.getElementById('classe_id');
+    
+    let custoRaca = 0;
+    let custoClasse = 0;
+    
+    if (racaSelect.value) {
+        const racaId = parseInt(racaSelect.value);
+        if (racasData[racaId]) {
+            custoRaca = racasData[racaId].custo || 0;
+        }
+    }
+    
+    if (classeSelect.value) {
+        const classeId = parseInt(classeSelect.value);
+        if (classesData[classeId]) {
+            custoClasse = classesData[classeId].custo || 0;
+        }
+    }
+    
+    // Custo total é apenas a soma dos custos de raça e classe
+    const custoTotal = custoRaca + custoClasse;
+    
+    // Pontos que sobrarão após comprar raça/classe
+    const pontosSobra = pontosDisponiveisValor - custoTotal;
+    
+    document.getElementById('custo-total').textContent = custoTotal;
+    
+    // Monta detalhes do custo
+    let detalhes = '';
+    if (custoRaca !== 0 && custoClasse !== 0) {
+        detalhes = `${custoRaca} (raça) + ${custoClasse} (classe)`;
+    } else if (custoRaca !== 0) {
+        detalhes = `${custoRaca} (raça)`;
+    } else if (custoClasse !== 0) {
+        detalhes = `${custoClasse} (classe)`;
+    } else {
+        detalhes = '0 (nenhuma raça/classe selecionada)';
+    }
+    
+    // Adiciona informação sobre pontos que sobrarão
+    if (custoTotal > 0) {
+        detalhes += ` | Sobra: ${pontosSobra} pontos`;
+    }
+    
+    document.getElementById('custo-detalhes').textContent = detalhes;
+    
+    // Atualiza cor do indicador
+    const infoDiv = document.getElementById('custo-total-info');
+    if (custoTotal > pontosDisponiveisValor) {
+        infoDiv.style.background = 'rgba(220, 53, 69, 0.3)';
+        infoDiv.style.border = '2px solid #dc3545';
+        document.getElementById('btn-criar-ficha').disabled = true;
+        document.getElementById('btn-criar-ficha').style.opacity = '0.5';
+        document.getElementById('btn-criar-ficha').style.cursor = 'not-allowed';
+    } else {
+        infoDiv.style.background = 'rgba(255,255,255,0.2)';
+        infoDiv.style.border = 'none';
+        document.getElementById('btn-criar-ficha').disabled = false;
+        document.getElementById('btn-criar-ficha').style.opacity = '1';
+        document.getElementById('btn-criar-ficha').style.cursor = 'pointer';
+    }
+}
+
+function validarPontosAntesDeEnviar(event) {
+    const pontosDisponiveisValor = pontosDisponiveis;
+    const racaSelect = document.getElementById('raca_id');
+    const classeSelect = document.getElementById('classe_id');
+    
+    let custoRaca = 0;
+    let custoClasse = 0;
+    
+    if (racaSelect.value) {
+        const racaId = parseInt(racaSelect.value);
+        if (racasData[racaId]) {
+            custoRaca = racasData[racaId].custo || 0;
+        }
+    }
+    
+    if (classeSelect.value) {
+        const classeId = parseInt(classeSelect.value);
+        if (classesData[classeId]) {
+            custoClasse = classesData[classeId].custo || 0;
+        }
+    }
+    
+    // Custo total é apenas a soma dos custos de raça e classe
+    const custoTotal = custoRaca + custoClasse;
+    
+    if (custoTotal > pontosDisponiveisValor) {
+        event.preventDefault();
+        alert(`Pontos insuficientes!\n\nVocê tem: ${pontosDisponiveisValor} pontos\nCusto total: ${custoTotal} pontos (${custoRaca} raça + ${custoClasse} classe)\n\nFaltam: ${custoTotal - pontosDisponiveisValor} pontos`);
+        return false;
+    }
+    
+    return true;
+}
+
+function atualizarAtributos() {
+    const racaSelect = document.getElementById('raca_id');
+    const classeSelect = document.getElementById('classe_id');
+    
+    // Valores base (padrão GURPS)
+    let bonusTotal = {
+        ST: 0,
+        DX: 0,
+        IQ: 0,
+        HT: 0
+    };
+    
+    // Soma bônus da raça
+    if (racaSelect.value) {
+        const racaId = parseInt(racaSelect.value);
+        if (racasData[racaId]) {
+            bonusTotal.ST += racasData[racaId].bonus_st || 0;
+            bonusTotal.DX += racasData[racaId].bonus_dx || 0;
+            bonusTotal.IQ += racasData[racaId].bonus_iq || 0;
+            bonusTotal.HT += racasData[racaId].bonus_ht || 0;
+        }
+    }
+    
+    // Soma bônus da classe
+    if (classeSelect.value) {
+        const classeId = parseInt(classeSelect.value);
+        if (classesData[classeId]) {
+            bonusTotal.ST += classesData[classeId].bonus_st || 0;
+            bonusTotal.DX += classesData[classeId].bonus_dx || 0;
+            bonusTotal.IQ += classesData[classeId].bonus_iq || 0;
+            bonusTotal.HT += classesData[classeId].bonus_ht || 0;
+        }
+    }
+    
+    // Atualiza cada atributo
+    const atributos = ['ST', 'DX', 'IQ', 'HT'];
+    atributos.forEach(atributo => {
+        const valorBase = 10;
+        const bonus = bonusTotal[atributo];
+        const valorFinal = valorBase + bonus;
+        
+        // Atualiza exibição (mostra o valor final com bônus)
+        const elemento = document.getElementById(`atributo-${atributo.toLowerCase()}`);
+        if (elemento) {
+            elemento.textContent = valorFinal;
+        }
+        
+        // IMPORTANTE: Campo hidden sempre envia o valor BASE (10)
+        // O backend vai somar os bônus da raça/classe
+        const inputHidden = document.getElementById(`input-${atributo.toLowerCase()}`);
+        if (inputHidden) {
+            inputHidden.value = valorBase; // Sempre 10, o backend soma os bônus
+        }
+        
+        // Atualiza texto de bônus
+        const bonusElement = document.getElementById(`bonus-${atributo.toLowerCase()}`);
+        if (bonusElement) {
+            if (bonus > 0) {
+                bonusElement.textContent = `+${bonus} bônus`;
+                bonusElement.style.color = 'rgba(255, 255, 255, 0.9)';
+            } else if (bonus < 0) {
+                bonusElement.textContent = `${bonus} bônus`;
+                bonusElement.style.color = 'rgba(255, 255, 255, 0.9)';
+            } else {
+                bonusElement.textContent = '';
+            }
+        }
+    });
+}
+
+// Calcula custo e atualiza atributos ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    calcularCustoTotal();
+    atualizarAtributos();
+});
+</script>
+{% endblock %}
+

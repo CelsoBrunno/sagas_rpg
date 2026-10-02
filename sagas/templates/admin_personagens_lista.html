@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Personagens{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Gerenciar Personagens</h1>
+    
+    <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+        <a href="{{ url_for('admin_personagens_lista', status='all') }}" 
+           class="btn-secondary {% if status_filter == 'all' %}active{% endif %}" 
+           style="padding: 0.5rem 1rem;">Todos</a>
+        <a href="{{ url_for('admin_personagens_lista', status='pendente') }}" 
+           class="btn-secondary {% if status_filter == 'pendente' %}active{% endif %}" 
+           style="padding: 0.5rem 1rem;">Pendentes</a>
+        <a href="{{ url_for('admin_personagens_lista', status='aprovado') }}" 
+           class="btn-secondary {% if status_filter == 'aprovado' %}active{% endif %}" 
+           style="padding: 0.5rem 1rem;">Aprovados</a>
+        <a href="{{ url_for('admin_personagens_lista', status='rejeitado') }}" 
+           class="btn-secondary {% if status_filter == 'rejeitado' %}active{% endif %}" 
+           style="padding: 0.5rem 1rem;">Rejeitados</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table-gurps">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Jogador</th>
+                    <th>Campanha</th>
+                    <th>Status Criação</th>
+                    <th>Tipo</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for personagem in personagens %}
+                <tr>
+                    <td>{{ personagem.id }}</td>
+                    <td><strong>{{ personagem.nome }}</strong></td>
+                    <td>{{ personagem.usuario_username or personagem.jogador_nome or '-' }}</td>
+                    <td>{{ personagem.nome_campanha or '-' }}</td>
+                    <td>
+                        <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem;
+                            {% if personagem.status_criacao == 'Aprovado' %}background: #28a745; color: white;
+                            {% elif personagem.status_criacao == 'Rejeitado' %}background: #dc3545; color: white;
+                            {% elif personagem.status_criacao == 'Pendente' %}background: #ffc107; color: #333;
+                            {% else %}background: #6c757d; color: white;
+                            {% endif %}">
+                            {{ personagem.status_criacao }}
+                        </span>
+                    </td>
+                    <td>{{ personagem.tipo or 'PJ' }}</td>
+                    <td>
+                        <a href="{{ url_for('ver_personagem', id=personagem.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver</a>
+                        {% if personagem.status_criacao == 'Pendente' %}
+                            <button onclick="aprovarPersonagem({{ personagem.id }})" class="btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Aprovar</button>
+                            <button onclick="rejeitarPersonagem({{ personagem.id }})" class="btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Rejeitar</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function aprovarPersonagem(id) {
+    const observacoes = prompt('Observações (opcional):');
+    fetch(`/admin/personagens/${id}/aprovar`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({observacoes: observacoes || ''})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    });
+}
+
+function rejeitarPersonagem(id) {
+    const observacoes = prompt('Motivo da rejeição (opcional):');
+    fetch(`/admin/personagens/${id}/rejeitar`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({observacoes: observacoes || ''})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    });
+}
+</script>
+{% endblock %}
+

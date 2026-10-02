@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Vantagens/Desvantagens - Catálogo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>Catálogo de Vantagens/Desvantagens</h1>
+        <a href="{{ url_for('admin_vantagens_novo') }}" class="btn-primary">+ Nova Vantagem/Desvantagem</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-gurps">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Tipo</th>
+                    <th>Custo Base</th>
+                    <th>Custo Texto</th>
+                    <th>Categoria</th>
+                    <th>Descrição</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vantagem in vantagens %}
+                <tr>
+                    <td><strong>{{ vantagem.nome }}</strong></td>
+                    <td>
+                        <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem;
+                            {% if vantagem.tipo == 'Vantagem' %}background: #28a745; color: white;
+                            {% else %}background: #dc3545; color: white;
+                            {% endif %}">
+                            {{ vantagem.tipo }}
+                        </span>
+                    </td>
+                    <td>{{ vantagem.custo_base }}</td>
+                    <td>{{ vantagem.custo_texto or '-' }}</td>
+                    <td>{{ vantagem.categoria or '-' }}</td>
+                    <td>{{ (vantagem.descricao or '')[:50] }}{% if vantagem.descricao and vantagem.descricao|length > 50 %}...{% endif %}</td>
+                    <td>
+                        <a href="{{ url_for('admin_vantagens_editar', id=vantagem.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                        <button onclick="deletarVantagem({{ vantagem.id }})" class="btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Deletar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function deletarVantagem(id) {
+    if (!confirm('Tem certeza que deseja deletar esta vantagem/desvantagem? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+    
+    fetch(`/admin/vantagens/${id}/deletar`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    });
+}
+</script>
+{% endblock %}
+

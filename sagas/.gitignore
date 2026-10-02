@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Flask
+instance/
+.webassets-cache
+
+# Environment variables
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads (mas manter estrutura)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Personal notes (opcional)
+TODO.txt
+NOTES.txt
+
+# Material protegido por copyright (GURPS / Steve Jackson Games)
+anexos/*.pdf
+
+# Script local com senhas de jogadores
+scripts/criar_usuarios.py

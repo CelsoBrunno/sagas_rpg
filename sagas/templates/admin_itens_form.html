@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}{% if item %}Editar{% else %}Novo{% endif %} Item - Catálogo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if item %}Editar{% else %}Novo{% endif %} Item</h1>
+    
+    <div class="card">
+        <form method="POST" onsubmit="return validarCategoria()">
+            <div class="form-group">
+                <label for="nome" class="form-label">Nome *</label>
+                <input type="text" id="nome" name="nome" class="form-control" value="{{ item.nome if item else '' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="categoria" class="form-label">Categoria</label>
+                <select id="categoria_select" class="form-control" onchange="handleCategoriaChange()">
+                    <option value="">-- Selecione uma categoria --</option>
+                    <option value="Arma" {% if item and item.categoria == 'Arma' %}selected{% endif %}>Arma</option>
+                    <option value="Armadura" {% if item and item.categoria == 'Armadura' %}selected{% endif %}>Armadura</option>
+                    <option value="Escudo" {% if item and item.categoria == 'Escudo' %}selected{% endif %}>Escudo</option>
+                    <option value="Consumível" {% if item and item.categoria == 'Consumível' %}selected{% endif %}>Consumível</option>
+                    <option value="Poção" {% if item and item.categoria == 'Poção' %}selected{% endif %}>Poção</option>
+                    <option value="Ferramenta" {% if item and item.categoria == 'Ferramenta' %}selected{% endif %}>Ferramenta</option>
+                    <option value="Equipamento de Viagem" {% if item and item.categoria == 'Equipamento de Viagem' %}selected{% endif %}>Equipamento de Viagem</option>
+                    <option value="Roupa" {% if item and item.categoria == 'Roupa' %}selected{% endif %}>Roupa</option>
+                    <option value="Acessório" {% if item and item.categoria == 'Acessório' %}selected{% endif %}>Acessório</option>
+                    <option value="Livro" {% if item and item.categoria == 'Livro' %}selected{% endif %}>Livro</option>
+                    <option value="Material" {% if item and item.categoria == 'Material' %}selected{% endif %}>Material</option>
+                    <option value="Munição" {% if item and item.categoria == 'Munição' %}selected{% endif %}>Munição</option>
+                    <option value="Outro" {% if item and item.categoria == 'Outro' %}selected{% endif %}>Outro</option>
+                    <option value="__nova__">+ Adicionar nova categoria</option>
+                </select>
+                <input type="text" id="categoria" name="categoria" class="form-control" 
+                       value="{{ item.categoria if item else '' }}" 
+                       placeholder="Digite a categoria" 
+                       style="display: none; margin-top: 0.5rem;">
+                <small id="categoria_help" style="color: var(--cor-texto-claro); display: none; margin-top: 0.25rem;">
+                    Digite o nome da nova categoria e pressione Enter ou clique fora do campo
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo_item" class="form-label">Tipo de Item *</label>
+                <select id="tipo_item" name="tipo_item" class="form-control" required>
+                    <option value="equipamento" {% if item and item.tipo_item == 'equipamento' %}selected{% endif %}>Equipamento</option>
+                    <option value="consumivel" {% if item and item.tipo_item == 'consumivel' %}selected{% endif %}>Consumível</option>
+                    <option value="outro" {% if not item or item.tipo_item == 'outro' %}selected{% endif %}>Outro</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="preco" class="form-label">Preço (₣)</label>
+                    <input type="number" id="preco" name="preco" class="form-control" step="0.01" value="{{ item.preco if item else '0' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="peso" class="form-label">Peso (lbs)</label>
+                    <input type="number" id="peso" name="peso" class="form-control" step="0.01" value="{{ item.peso if item else '0' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao" class="form-label">Descrição</label>
+                <textarea id="descricao" name="descricao" class="form-control" rows="4">{{ item.descricao if item else '' }}</textarea>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Dano (Opcional)</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="dano_bal_mod" class="form-label">Dano BAL (Modificador)</label>
+                    <input type="number" id="dano_bal_mod" name="dano_bal_mod" class="form-control" value="{{ item.dano_bal_mod if item and item.dano_bal_mod else '' }}" placeholder="Ex: 1, 2, -1">
+                </div>
+
+                <div class="form-group">
+                    <label for="dano_bal_tipo" class="form-label">Dano BAL (Tipo)</label>
+                    <input type="text" id="dano_bal_tipo" name="dano_bal_tipo" class="form-control" value="{{ item.dano_bal_tipo if item else '' }}" placeholder="Ex: corte, contusão">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="dano_gdp_mod" class="form-label">Dano GDP (Modificador)</label>
+                    <input type="number" id="dano_gdp_mod" name="dano_gdp_mod" class="form-control" value="{{ item.dano_gdp_mod if item and item.dano_gdp_mod else '' }}" placeholder="Ex: 1, 2, -1">
+                </div>
+
+                <div class="form-group">
+                    <label for="dano_gdp_tipo" class="form-label">Dano GDP (Tipo)</label>
+                    <input type="text" id="dano_gdp_tipo" name="dano_gdp_tipo" class="form-control" value="{{ item.dano_gdp_tipo if item else '' }}" placeholder="Ex: corte, contusão">
+                </div>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Redução de Dano - RD (Opcional)</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="rd_mod" class="form-label">RD (Modificador)</label>
+                    <input type="number" id="rd_mod" name="rd_mod" class="form-control" value="{{ item.rd_mod if item and item.rd_mod else '' }}" placeholder="Ex: 2, 4, 6">
+                    <small style="color: var(--cor-texto-claro);">Valor de redução de dano (ex: 2 = RD 2)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="rd_tipo" class="form-label">RD (Tipo)</label>
+                    <input type="text" id="rd_tipo" name="rd_tipo" class="form-control" value="{{ item.rd_tipo if item else '' }}" placeholder="Ex: balístico, corte, contusão">
+                    <small style="color: var(--cor-texto-claro);">Tipo de dano que a RD reduz (deixe vazio para RD geral)</small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Salvar</button>
+                <a href="{{ url_for('admin_itens_lista') }}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Inicializa o campo categoria baseado no valor existente
+document.addEventListener('DOMContentLoaded', function() {
+    const categoriaInput = document.getElementById('categoria');
+    const categoriaSelect = document.getElementById('categoria_select');
+    const categoriaHelp = document.getElementById('categoria_help');
+    
+    // Se já tem uma categoria que não está na lista, mostra o input
+    const categoriaAtual = categoriaInput.value;
+    if (categoriaAtual) {
+        const opcaoExistente = Array.from(categoriaSelect.options).find(opt => opt.value === categoriaAtual && opt.value !== '__nova__');
+        if (opcaoExistente) {
+            // Categoria existe na lista, seleciona ela
+            categoriaSelect.value = categoriaAtual;
+            categoriaInput.style.display = 'none';
+            categoriaInput.value = categoriaAtual;
+        } else {
+            // Categoria não existe na lista, mostra o input
+            categoriaSelect.value = '__nova__';
+            categoriaInput.style.display = 'block';
+            categoriaHelp.style.display = 'block';
+            categoriaInput.value = categoriaAtual;
+        }
+    }
+});
+
+function handleCategoriaChange() {
+    const categoriaSelect = document.getElementById('categoria_select');
+    const categoriaInput = document.getElementById('categoria');
+    const categoriaHelp = document.getElementById('categoria_help');
+    
+    if (categoriaSelect.value === '__nova__') {
+        // Mostra o input para nova categoria
+        categoriaInput.style.display = 'block';
+        categoriaHelp.style.display = 'block';
+        categoriaInput.value = '';
+        categoriaInput.focus();
+        categoriaInput.required = true;
+    } else {
+        // Esconde o input e define o valor selecionado
+        categoriaInput.style.display = 'none';
+        categoriaHelp.style.display = 'none';
+        categoriaInput.value = categoriaSelect.value;
+        categoriaInput.required = false;
+    }
+}
+
+// Quando o usuário digita no campo de nova categoria e pressiona Enter ou sai do campo
+document.addEventListener('DOMContentLoaded', function() {
+    const categoriaInput = document.getElementById('categoria');
+    
+    categoriaInput.addEventListener('blur', function() {
+        if (this.value.trim() && document.getElementById('categoria_select').value === '__nova__') {
+            // Adiciona a nova categoria ao select (opcional, para facilitar uso futuro)
+            const categoriaSelect = document.getElementById('categoria_select');
+            const categoriaHelp = document.getElementById('categoria_help');
+            const novaCategoria = this.value.trim();
+            
+            // Verifica se já não existe
+            const existe = Array.from(categoriaSelect.options).some(opt => opt.value === novaCategoria);
+            if (!existe && novaCategoria) {
+                // Adiciona antes da opção "__nova__"
+                const option = document.createElement('option');
+                option.value = novaCategoria;
+                option.textContent = novaCategoria;
+                categoriaSelect.insertBefore(option, categoriaSelect.lastElementChild);
+                categoriaSelect.value = novaCategoria;
+                
+                // Esconde o input e mostra o select novamente
+                this.style.display = 'none';
+                categoriaHelp.style.display = 'none';
+            }
+        }
+    });
+    
+    categoriaInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this.blur();
+        }
+    });
+});
+
+// Validação antes de submeter o formulário
+function validarCategoria() {
+    const categoriaSelect = document.getElementById('categoria_select');
+    const categoriaInput = document.getElementById('categoria');
+    
+    if (categoriaSelect.value === '__nova__') {
+        if (!categoriaInput.value.trim()) {
+            alert('Por favor, digite o nome da nova categoria ou selecione uma categoria existente.');
+            categoriaInput.focus();
+            return false;
+        }
+    }
+    
+    // Garante que o valor correto está no campo categoria
+    if (categoriaSelect.value !== '__nova__') {
+        categoriaInput.value = categoriaSelect.value;
+    }
+    
+    return true;
+}
+</script>
+{% endblock %}
+

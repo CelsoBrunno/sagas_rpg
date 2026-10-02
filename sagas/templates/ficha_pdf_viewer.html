@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Premium - {{ personagem.nome }}</title>
+    <link rel="icon" href="data:,">  <!-- Remove requisição de favicon -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            background: #525252;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="pdf-iframe" src="{{ url_for('ficha_premium_pdf', id=personagem.id) }}?teste={{ request.args.get('teste', 'false') }}&_={{ request.args.get('_', '') }}" type="application/pdf">
+        <p>Seu navegador não suporta visualização de PDF.</p>
+    </iframe>
+    <script>
+        // Força recarregamento do iframe ao recarregar a página
+        const iframe = document.getElementById('pdf-iframe');
+        const url = new URL(iframe.src);
+        url.searchParams.set('_', Date.now());
+        iframe.src = url.toString();
+    </script>
+</body>
+</html>
+
