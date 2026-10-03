@@ -33,7 +33,7 @@ from myth_catalogo_dados import PERICIAS, ITENS
 from myth_bestiario_dados import CRIATURAS
 from fichas_npc import criar_personagem_completo
 
-NOME_CAMPANHA = 'Myth'
+NOME_CAMPANHA = 'Os Senhores Caídos'
 
 
 def buscar_campanha_id():

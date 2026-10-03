@@ -241,7 +241,7 @@ LOCAIS = [
 # A descrição do mapa é visível para os jogadores
 MAPAS = [
     {
-        'nome_mapa': 'Mapa-múndi de Myth',
+        'nome_mapa': 'Mapa-múndi dos Senhores Caídos',
         'url_imagem': '/static/images/mapas/myth_mapa_mundi.png',
         'tipo_mapa': 'Regional',
         'local': None,

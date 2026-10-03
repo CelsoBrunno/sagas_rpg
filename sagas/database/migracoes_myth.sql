@@ -63,3 +63,8 @@ CREATE TABLE IF NOT EXISTS bestiario_imagens (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_bestiario) REFERENCES bestiario(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. Campanha Myth renomeada para Os Senhores Caídos
+UPDATE campanhas SET nome_campanha = 'Os Senhores Caídos', descricao = 'Ano 17 da Grande Guerra contra o Escuro.'
+WHERE nome_campanha = 'Myth';
+UPDATE mapas SET nome_mapa = 'Mapa-múndi dos Senhores Caídos' WHERE nome_mapa = 'Mapa-múndi de Myth';

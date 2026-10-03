@@ -8,7 +8,7 @@ class Campanha:
     # Cada tema diferente de 'padrao' precisa de static/css/tema-<chave>.css
     TEMAS = {
         'padrao': 'Padrão (SagaS)',
-        'myth': 'Myth (sombrio)',
+        'myth': 'Senhores Caídos (sombrio)',
     }
 
     @staticmethod
