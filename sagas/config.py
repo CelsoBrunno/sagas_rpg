@@ -5,7 +5,8 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# Caminho explícito: no servidor web a pasta atual não é a do projeto
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
 
 class Config:
     """Configurações principais da aplicação"""
