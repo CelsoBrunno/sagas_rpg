@@ -29,6 +29,7 @@ from database import Database
 from models import Raca, Classe, Local, NPC, Mapa, PericiaCatalogo, ItemCatalogo, Bestiario
 from myth_ano17_dados import RACAS, CLASSES, LOCAIS, MAPAS, NPCS
 from myth_esquadra_dados import NPCS_ESQUADRA
+from myth_campeoes_dados import CAMPEOES
 from myth_catalogo_dados import PERICIAS, ITENS
 from myth_bestiario_dados import CRIATURAS
 from fichas_npc import criar_personagem_completo
@@ -73,13 +74,21 @@ def popular_locais(campanha_id):
 
 def popular_npcs(campanha_id, locais_por_nome):
     existentes = nomes_existentes(NPC.listar_por_campanha(campanha_id))
-    for npc in NPCS + NPCS_ESQUADRA:
+    for npc in NPCS + NPCS_ESQUADRA + CAMPEOES:
         if npc['nome'] in existentes:
             print(f"  NPC já existe: {npc['nome']}")
             continue
-        dados = {k: v for k, v in npc.items() if k != 'local'}
+        dados = {k: v for k, v in npc.items() if k not in ('local', 'ficha')}
         dados['local_atual_id'] = locais_por_nome.get(npc['local']) if npc['local'] else None
         dados['id_campanha'] = campanha_id
+        if 'ficha' in npc:
+            dados['ficha_personagem_id'] = criar_personagem_completo({
+                **npc['ficha'],
+                'nome': npc['nome'],
+                'categoria': 'Humano',
+                'biografia': npc['descricao_breve'],
+                'id_campanha': campanha_id,
+            })
         NPC.criar(dados)
         print(f"  NPC criado: {npc['nome']}")
 
