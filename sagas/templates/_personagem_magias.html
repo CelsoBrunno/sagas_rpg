@@ -39,7 +39,10 @@
 
 <div id="tab-magias" class="tab-content">
     <div class="card">
-        <h3>Magias (Grimório)</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <h3>Magias (Grimório)</h3>
+            <a href="{{ url_for('magias.catalogo_magias') }}" class="btn-secondary" target="_blank">📚 Catálogo de magias</a>
+        </div>
 
         {% if magias %}
         <div class="table-responsive">
@@ -98,8 +101,32 @@
         {% endif %}
 
         {% if e_mestre %}
-        <details style="margin-top: 1.5rem;" {% if not magias %}open{% endif %}>
-            <summary style="cursor:pointer; font-weight:bold;">➕ Adicionar magia</summary>
+        {% if catalogo_magias %}
+        <form method="POST" action="{{ url_for('magias.adicionar_magia_do_catalogo', personagem_id=personagem.id) }}"
+              style="margin-top: 1.5rem; display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+            <div class="form-group" style="flex: 1 1 280px; margin:0;">
+                <label class="form-label">➕ Adicionar do catálogo</label>
+                <select name="catalogo_id" class="form-control" required>
+                    <option value="">Escolha uma magia...</option>
+                    {% for escola, lista in catalogo_magias|groupby('escola') %}
+                    <optgroup label="{{ escola }}">
+                        {% for m in lista %}
+                        <option value="{{ m.id }}">{{ m.nome }}{% if m.dificuldade == 'MD' %} (MD){% endif %} — custo {{ m.custo }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="flex: 0 0 90px; margin:0;">
+                <label class="form-label">NH</label>
+                <input type="number" name="nh" class="form-control">
+            </div>
+            <button type="submit" class="btn-primary">Adicionar</button>
+        </form>
+        {% endif %}
+
+        <details style="margin-top: 1.5rem;" {% if not magias and not catalogo_magias %}open{% endif %}>
+            <summary style="cursor:pointer; font-weight:bold;">✍️ Adicionar magia manualmente</summary>
             <div style="margin-top: 0.75rem;">
                 {{ form_magia(url_for('magias.adicionar_magia', personagem_id=personagem.id)) }}
             </div>

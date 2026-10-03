@@ -3,10 +3,10 @@
 # Os jogadores só veem; quem cadastra e edita é o mestre.
 # ==========================================
 
-from flask import Blueprint, request, redirect, url_for, flash
+from flask import Blueprint, request, redirect, url_for, flash, render_template
 
-from models import Magia, Personagem
-from utils.acesso import verificar_admin, pertence_a_campanha_ativa
+from models import Magia, MagiaCatalogo, Personagem
+from utils.acesso import verificar_admin, verificar_login, pertence_a_campanha_ativa
 
 bp = Blueprint('magias', __name__)
 
@@ -62,6 +62,34 @@ def adicionar_magia(personagem_id):
         Magia.criar(personagem_id, dados)
         flash(f'{dados["nome"]} adicionada ao grimório.', 'success')
     return _voltar_para_ficha(personagem_id)
+
+
+@bp.route('/personagem/<int:personagem_id>/magias/catalogo', methods=['POST'])
+def adicionar_magia_do_catalogo(personagem_id):
+    if not _personagem_editavel(personagem_id):
+        return redirect(url_for('index'))
+    modelo = MagiaCatalogo.buscar_por_id(request.form.get('catalogo_id', type=int) or 0)
+    if not modelo:
+        flash('Escolha uma magia do catálogo.', 'danger')
+        return _voltar_para_ficha(personagem_id)
+    Magia.criar(personagem_id, {
+        'nome': modelo['nome'],
+        'escola': modelo['escola'],
+        'nh': request.form.get('nh', type=int),
+        'custo': modelo['custo'],
+        'tempo': modelo['tempo'],
+        'duracao': modelo['duracao'],
+        'notas': modelo['descricao'],
+    })
+    flash(f'{modelo["nome"]} adicionada ao grimório.', 'success')
+    return _voltar_para_ficha(personagem_id)
+
+
+@bp.route('/magias/catalogo')
+def catalogo_magias():
+    if not verificar_login():
+        return redirect(url_for('login'))
+    return render_template('magias_catalogo.html', magias=MagiaCatalogo.listar_todas())
 
 
 @bp.route('/magias/<int:magia_id>/editar', methods=['POST'])

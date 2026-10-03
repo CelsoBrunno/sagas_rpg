@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Catálogo de Magias - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Catálogo de Magias</h1>
+    <p style="color: var(--cor-texto-claro);">
+        As {{ magias|length }} magias do GURPS 4ª edição, Módulo Básico. Os textos aqui são resumos;
+        a regra completa está no livro, na página indicada. (MD) = IQ/Muito Difícil; as demais são IQ/Difícil.
+    </p>
+
+    {% if not magias %}
+    <div class="card"><p style="margin:0;">O catálogo ainda está vazio.</p></div>
+    {% else %}
+    <input type="search" id="busca-magia" class="form-control" placeholder="Buscar magia pelo nome..."
+           style="margin-bottom: 1.5rem;" oninput="filtrarMagias(this.value)">
+
+    {% for escola, lista in magias|groupby('escola') %}
+    <div class="card escola-magia">
+        <h3>{{ escola }} <small style="color: var(--cor-texto-claro);">({{ lista|length }})</small></h3>
+        <div class="table-responsive">
+            <table class="table-gurps">
+                <thead>
+                    <tr>
+                        <th>Magia</th>
+                        <th>Classe</th>
+                        <th>Custo</th>
+                        <th>Tempo</th>
+                        <th>Duração</th>
+                        <th>Pré-requisitos</th>
+                        <th>Pág.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in lista %}
+                    <tr class="linha-magia" data-nome="{{ m.nome|lower }}">
+                        <td>
+                            <strong>{{ m.nome }}{% if m.dificuldade == 'MD' %} (MD){% endif %}</strong>
+                            <div style="font-size: 0.85rem; color: var(--cor-texto-claro);">{{ m.descricao }}</div>
+                        </td>
+                        <td>{{ m.classe }}</td>
+                        <td>{{ m.custo }}</td>
+                        <td>{{ m.tempo }}</td>
+                        <td>{{ m.duracao }}</td>
+                        <td>{{ m.pre_requisitos }}</td>
+                        <td>{{ m.pagina or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filtrarMagias(termo) {
+    termo = termo.trim().toLowerCase();
+    document.querySelectorAll('.escola-magia').forEach(function (card) {
+        let visiveis = 0;
+        card.querySelectorAll('.linha-magia').forEach(function (linha) {
+            const mostrar = !termo || linha.dataset.nome.includes(termo);
+            linha.style.display = mostrar ? '' : 'none';
+            if (mostrar) visiveis++;
+        });
+        card.style.display = visiveis ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

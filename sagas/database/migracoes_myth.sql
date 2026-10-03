@@ -76,9 +76,28 @@ CREATE TABLE IF NOT EXISTS personagem_magias (
     nome VARCHAR(150) NOT NULL,
     escola VARCHAR(60),
     nh INT,
-    custo VARCHAR(60),
-    tempo VARCHAR(40),
-    duracao VARCHAR(40),
+    custo VARCHAR(150),
+    tempo VARCHAR(60),
+    duracao VARCHAR(80),
     notas TEXT,
     FOREIGN KEY (personagem_id) REFERENCES personagens(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 8. Catálogo de magias (depois rode: python scripts/populate/magias_catalogo.py)
+ALTER TABLE personagem_magias
+    MODIFY custo VARCHAR(150), MODIFY tempo VARCHAR(60), MODIFY duracao VARCHAR(80);
+
+CREATE TABLE IF NOT EXISTS magias_catalogo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    escola VARCHAR(60) NOT NULL,
+    classe VARCHAR(80),
+    dificuldade ENUM('D', 'MD') NOT NULL DEFAULT 'D',
+    custo VARCHAR(150),
+    tempo VARCHAR(60),
+    duracao VARCHAR(80),
+    pre_requisitos VARCHAR(255),
+    pagina INT,
+    descricao TEXT,
+    UNIQUE KEY uniq_magia_nome (nome)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

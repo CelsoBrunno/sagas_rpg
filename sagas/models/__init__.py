@@ -29,7 +29,7 @@ from .item_catalogo import ItemCatalogo
 from .raca import Raca
 from .classe import Classe
 from .bestiario import Bestiario
-from .magia import Magia
+from .magia import Magia, MagiaCatalogo
 
 __all__ = [
     # Personagens
@@ -54,6 +54,7 @@ __all__ = [
     'Raca',
     'Classe',
     'Bestiario',
-    'Magia'
+    'Magia',
+    'MagiaCatalogo'
 ]
 

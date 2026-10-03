@@ -5,14 +5,16 @@
 from database import Database
 
 _CAMPOS = ('nome', 'escola', 'nh', 'custo', 'tempo', 'duracao', 'notas')
+_CAMPOS_CATALOGO = ('nome', 'escola', 'classe', 'dificuldade', 'custo', 'tempo', 'duracao',
+                    'pre_requisitos', 'pagina', 'descricao')
 
 
 class Magia:
-    # Escolas do GURPS 4e Módulo Básico (sugestões; o campo aceita outras)
+    # Escolas do GURPS 4e Módulo Básico, com os nomes da edição em português
     ESCOLAS = (
-        'Água', 'Ar', 'Comunicação e Empatia', 'Conhecimento', 'Controle da Mente',
-        'Controle do Corpo', 'Cura', 'Fogo', 'Luz e Trevas', 'Meta-Mágica',
-        'Movimento', 'Necromancia', 'Portais', 'Proteção e Aviso', 'Terra',
+        'Água', 'Ar', 'Comunicação e Empatia', 'Controle da Mente', 'Controle do Corpo',
+        'Cura', 'Deslocamento', 'Fogo', 'Luz e Trevas', 'Metamágica',
+        'Necromancia', 'Portal', 'Proteção e Aviso', 'Reconhecimento', 'Terra',
     )
 
     @staticmethod
@@ -48,3 +50,24 @@ class Magia:
     @staticmethod
     def deletar(magia_id):
         Database.execute_query("DELETE FROM personagem_magias WHERE id = %s", (magia_id,), fetch=False)
+
+
+class MagiaCatalogo:
+    @staticmethod
+    def listar_todas():
+        return Database.execute_query("SELECT * FROM magias_catalogo ORDER BY escola, nome") or []
+
+    @staticmethod
+    def buscar_por_id(magia_id):
+        result = Database.execute_query("SELECT * FROM magias_catalogo WHERE id = %s", (magia_id,))
+        return result[0] if result else None
+
+    @staticmethod
+    def criar_ou_atualizar(dados):
+        atualizacoes = ', '.join(f'{c} = VALUES({c})' for c in _CAMPOS_CATALOGO if c != 'nome')
+        query = f"""
+            INSERT INTO magias_catalogo ({', '.join(_CAMPOS_CATALOGO)})
+            VALUES ({', '.join(['%s'] * len(_CAMPOS_CATALOGO))})
+            ON DUPLICATE KEY UPDATE {atualizacoes}
+        """
+        Database.execute_query(query, tuple(dados.get(c) for c in _CAMPOS_CATALOGO), fetch=False)

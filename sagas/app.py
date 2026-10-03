@@ -7,7 +7,7 @@ from database import Database
 from models import (
     Personagem, Atributos, VantagemDesvantagem, Pericia,
     Campanha, Usuario, Local, NPC, Mapa, Imagem, Inventario, SessaoLog, PericiaCatalogo,
-    VantagemDesvantagemCatalogo, ItemCatalogo, Equipamento, Raca, Classe, Bestiario, Magia
+    VantagemDesvantagemCatalogo, ItemCatalogo, Equipamento, Raca, Classe, Bestiario, Magia, MagiaCatalogo
 )
 from config import Config
 import os
@@ -187,7 +187,8 @@ def ver_personagem(id):
                          },
                          historico_pontos=historico_pontos,
                          magias=Magia.listar_por_personagem(id),
-                         escolas_magia=Magia.ESCOLAS)
+                         escolas_magia=Magia.ESCOLAS,
+                         catalogo_magias=MagiaCatalogo.listar_todas() if verificar_admin() else [])
 
 @app.route('/api/personagem/<int:personagem_id>/biografia', methods=['PUT'])
 def atualizar_biografia(personagem_id):
