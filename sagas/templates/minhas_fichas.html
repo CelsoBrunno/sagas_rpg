@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Minhas Fichas - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Minhas Fichas</h1>
+  <p style="color: var(--cor-texto-claro);">Escolha com qual personagem você quer jogar.</p>
+
+  <div class="row">
+    {% for ficha in fichas %}
+    <div class="col-2">
+      <div class="card">
+        <div class="card-header">
+          <h3>{{ ficha.nome }}</h3>
+          <p style="color: var(--cor-texto-claro); margin: 0;">
+            <strong>Raça:</strong> {{ ficha.raca or 'Não definida' }}
+            | <strong>Pontos:</strong> {{ ficha.pontos_gastos or 0 }}/{{ ficha.pontos_base or 0 }}
+          </p>
+        </div>
+        <div class="card-body">
+          <a class="btn-primary" href="{{ url_for('ver_personagem', id=ficha.id) }}" style="width: 100%;">Abrir Ficha</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

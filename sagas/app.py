@@ -21,6 +21,7 @@ from utils.acesso import (
 from utils.uploads import allowed_file
 from routes.bestiario import bp as bestiario_bp
 from routes.magias import bp as magias_bp
+from routes.dono_ficha import bp as dono_ficha_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -42,6 +43,7 @@ Database.init_app(app)
 
 app.register_blueprint(bestiario_bp)
 app.register_blueprint(magias_bp)
+app.register_blueprint(dono_ficha_bp)
 
 # ==========================================
 # Rotas Principais
@@ -158,7 +160,6 @@ def ver_personagem(id):
     # Se o personagem tem um usuário associado, busca os pontos do usuário
     pontos_disponiveis_usuario = None
     if personagem.get('id_usuario_jogador'):
-        from models import Usuario
         pontos_disponiveis_usuario = Usuario.get_pontos_disponiveis(personagem['id_usuario_jogador'])
 
     # Histórico de evolução (pontos por sessão)
@@ -188,7 +189,8 @@ def ver_personagem(id):
                          historico_pontos=historico_pontos,
                          magias=Magia.listar_por_personagem(id),
                          escolas_magia=Magia.ESCOLAS,
-                         catalogo_magias=MagiaCatalogo.listar_todas() if verificar_admin() else [])
+                         catalogo_magias=MagiaCatalogo.listar_todas() if verificar_admin() else [],
+                         usuarios=Usuario.listar_todos() if verificar_admin() else [])
 
 @app.route('/api/personagem/<int:personagem_id>/biografia', methods=['PUT'])
 def atualizar_biografia(personagem_id):
@@ -616,19 +618,22 @@ def criar_minha_ficha():
 
 @app.route('/minha-ficha')
 def minha_ficha():
-    """Redireciona para a ficha do usuário logado"""
+    """Abre a ficha do usuário logado na campanha ativa, ou lista as fichas se ele tiver mais de uma"""
     if not verificar_login():
         flash('Você precisa estar logado para ver sua ficha.', 'danger')
         return redirect(url_for('login'))
-    
-    user_id = session.get('user_id')
-    ficha = Personagem.buscar_por_usuario(user_id)
-    
-    if not ficha:
+
+    campanha = exigir_campanha()
+    if not campanha:
+        return redirect(url_for('listar_campanhas'))
+
+    fichas = Personagem.listar_por_usuario(session.get('user_id'), campanha['id'])
+    if not fichas:
         flash('Você ainda não possui uma ficha. Crie uma agora!', 'info')
         return redirect(url_for('criar_minha_ficha'))
-    
-    return redirect(url_for('ver_personagem', id=ficha['id']))
+    if len(fichas) == 1:
+        return redirect(url_for('ver_personagem', id=fichas[0]['id']))
+    return render_template('minhas_fichas.html', fichas=fichas)
 
 @app.route('/minha-ficha/deletar', methods=['POST'])
 def deletar_minha_ficha():
@@ -638,7 +643,7 @@ def deletar_minha_ficha():
         return redirect(url_for('login'))
     
     user_id = session.get('user_id')
-    ficha = Personagem.buscar_por_usuario(user_id)
+    ficha = Personagem.buscar_por_id(request.form.get('personagem_id', type=int) or 0)
     
     if not ficha:
         flash('Você não possui uma ficha para deletar.', 'warning')

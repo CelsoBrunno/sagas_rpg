@@ -112,6 +112,27 @@ class Personagem:
         """
         result = Database.execute_query(query, (usuario_id,))
         return result[0] if result else None
+
+    @staticmethod
+    def listar_por_usuario(usuario_id, campanha_id):
+        """Fichas de jogador do usuário na campanha: as que ele criou e as que o mestre atribuiu."""
+        query = """
+            SELECT id, nome, raca, pontos_base, pontos_gastos
+            FROM personagens
+            WHERE id_usuario_jogador = %s AND tipo = 'PJ' AND id_campanha = %s
+            ORDER BY nome
+        """
+        return Database.execute_query(query, (usuario_id, campanha_id)) or []
+
+    @staticmethod
+    def definir_dono(personagem_id, usuario_id):
+        """Com dono, a ficha vira PJ do usuário; sem dono (None), volta a ser NPC."""
+        tem_dono = usuario_id is not None
+        Database.execute_query(
+            "UPDATE personagens SET id_usuario_jogador = %s, tipo = %s, is_pc = %s WHERE id = %s",
+            (usuario_id, 'PJ' if tem_dono else 'NPC', tem_dono, personagem_id),
+            fetch=False,
+        )
     
     @staticmethod
     def atualizar(personagem_id, dados):

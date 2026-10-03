@@ -33,11 +33,27 @@
             {% if pode_equipar and personagem.id_usuario_jogador and personagem.id_usuario_jogador == session.get('user_id') %}
             <div style="margin-top: 0.5rem;">
                 <form method="POST" action="{{ url_for('deletar_minha_ficha') }}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja apagar sua ficha? Todos os pontos gastos serão retornados à sua conta e você poderá criar uma nova ficha.');">
+                    <input type="hidden" name="personagem_id" value="{{ personagem.id }}">
                     <button type="submit" class="btn-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
                         🗑️ Apagar Ficha e Retornar Pontos
                     </button>
                 </form>
             </div>
+            {% endif %}
+            {% if session.get('role') == 'admin' %}
+            <form method="POST" action="{{ url_for('dono_ficha.definir_dono', personagem_id=personagem.id) }}"
+                  style="margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <label for="dono-ficha"><strong>Dono da ficha:</strong></label>
+                <select id="dono-ficha" name="usuario_id" class="form-control" style="width: auto;">
+                    <option value="">Ninguém (NPC)</option>
+                    {% for usuario in usuarios %}
+                    <option value="{{ usuario.id }}" {% if personagem.id_usuario_jogador == usuario.id %}selected{% endif %}>
+                        {{ usuario.nome_completo or usuario.username }} ({{ usuario.username }})
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-primary" style="padding: 0.4rem 0.9rem;">👤 Atribuir</button>
+            </form>
             {% endif %}
         </div>
         <div class="col-2" style="margin-bottom:0.75rem;">
