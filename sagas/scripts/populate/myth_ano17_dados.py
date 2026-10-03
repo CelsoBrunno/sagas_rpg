@@ -203,6 +203,39 @@ LOCAIS = [
             'do Cath Bruig. A Guarda Garça renasce e repele um cerco de Myrkridia e gigantes mandado pelo Enganador.'
         ),
     },
+    {
+        'nome': 'Império Cath Bruig',
+        'tipo': 'Outro',
+        'descricao_publica': (
+            'O maior império humano da história, hoje só lembrado em lendas. Foi fundado pelo imperador Clovis no '
+            'início da Era da Razão, com capital em Llancarfan, depois chamada Muirthemne. Clovis fez alianças com os '
+            'anões e com os Skrael. O terceiro imperador, Folsom, criou a Guarda Garça, soldados de elite que davam a '
+            'vida pelo império. O império expulsou os fir\'Bolg das terras das Colinas para a floresta Ermine.\n\n'
+            'Na Era da Razão, a guerra contra o Vigia levou à Grande Purificação, quando nobres fanáticos mandaram '
+            'exilar ou executar todo praticante de magia. Na mesma época surgiu o Nivelador Moagim, que soltou os '
+            'Myrkridia sobre o mundo e esmagou muitas cidades do império.\n\n'
+            'Na Era do Vento, Connacht reuniu os berserkers, expulsou os Myrkridia e passou a comandar os exércitos do '
+            'imperador Leitrim. Com Damas, Ravanna e outros heróis, além de anões, Avatara e bruxos, aprisionou os '
+            'Myrkridia, conquistou os Trow e venceu o Vigia. Moagim matou Leitrim numa emboscada noturna no Passo Norte, '
+            'e Connacht matou Moagim em combate. Connacht virou imperador e deu à capital o nome de Muirthemne, em '
+            'honra aos ferreiros anões.\n\n'
+            'Mil anos depois, Balor veio do leste e arrasou Muirthemne. Ceiscoran foi o último imperador, e a Coroa '
+            'de Íbis se perdeu. A Guarda Garça, envergonhada por deixar o império cair, largou '
+            'espadas e armaduras e virou os Jornadeiros.'
+        ),
+        'descricao_mestre': (
+            'O conselheiro imperial de Leitrim era Mjarin, Alto Mestre dos Bruxos de Scholomance. Mjarin era o Nivelador '
+            'e armou a morte de Leitrim. Tentou matar Connacht e Damas, e Connacht o decapitou. A cabeça dele é a Cabeça '
+            'que Truan trouxe da Barreira.\n\n'
+            'Balor é o próprio Connacht, que voltou mil anos depois e destruiu a cidade que governou. '
+            'Não revelar antes da batalha final.\n\n'
+            'Coroa de Íbis: Ceiscoran mandou fazer onze cópias para dificultar o roubo. A verdadeira está escondida no '
+            'mausoléu de Clovis, construído pelos anões em Muirthemne.\n\n'
+            'FUTURO (Segunda Guerra): Alric acha a coroa no mausoléu assombrado, que está cheio de Fetch e Myrkridia, e é '
+            'coroado imperador. A Guarda Garça volta ao serviço. A coroa multiplica por dez o poder de Alric, '
+            'que assim derrota o Enganador.'
+        ),
+    },
 ]
 
 # A descrição do mapa é visível para os jogadores
