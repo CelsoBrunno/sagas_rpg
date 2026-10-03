@@ -1,0 +1,120 @@
+{# Aba Magias da ficha: os jogadores só leem; o mestre cadastra e edita #}
+{% set e_mestre = session.get('role') == 'admin' %}
+
+{% macro form_magia(action, magia=None) %}
+<form method="POST" action="{{ action }}">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem;">
+        <div class="form-group">
+            <label class="form-label">Nome *</label>
+            <input type="text" name="nome" class="form-control" required value="{{ magia.nome if magia else '' }}" placeholder="Ex: Bola de Fogo">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Escola</label>
+            <input type="text" name="escola" class="form-control" list="escolas-magia" value="{{ magia.escola if magia and magia.escola else '' }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">NH</label>
+            <input type="number" name="nh" class="form-control" value="{{ magia.nh if magia and magia.nh is not none else '' }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Custo de energia</label>
+            <input type="text" name="custo" class="form-control" value="{{ magia.custo if magia and magia.custo else '' }}" placeholder="Ex: 1 a 3; 1 p/ manter">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Tempo</label>
+            <input type="text" name="tempo" class="form-control" value="{{ magia.tempo if magia and magia.tempo else '' }}" placeholder="Ex: 1 s">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Duração</label>
+            <input type="text" name="duracao" class="form-control" value="{{ magia.duracao if magia and magia.duracao else '' }}" placeholder="Ex: 1 min">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea name="notas" class="form-control" rows="2" placeholder="Efeito, dano, pré-requisitos...">{{ magia.notas if magia and magia.notas else '' }}</textarea>
+    </div>
+    <button type="submit" class="btn-primary">{{ 'Salvar' if magia else 'Adicionar ao grimório' }}</button>
+</form>
+{% endmacro %}
+
+<div id="tab-magias" class="tab-content">
+    <div class="card">
+        <h3>Magias (Grimório)</h3>
+
+        {% if magias %}
+        <div class="table-responsive">
+            <table class="table-gurps">
+                <thead>
+                    <tr>
+                        <th>Magia</th>
+                        <th>Escola</th>
+                        <th>NH</th>
+                        <th>Custo</th>
+                        <th>Tempo</th>
+                        <th>Duração</th>
+                        <th>Notas</th>
+                        {% if e_mestre %}<th>Ações</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for magia in magias %}
+                    <tr>
+                        <td><strong>{{ magia.nome }}</strong></td>
+                        <td>{{ magia.escola or '-' }}</td>
+                        <td>{{ magia.nh if magia.nh is not none else '-' }}</td>
+                        <td>{{ magia.custo or '-' }}</td>
+                        <td>{{ magia.tempo or '-' }}</td>
+                        <td>{{ magia.duracao or '-' }}</td>
+                        <td>{{ magia.notas or '-' }}</td>
+                        {% if e_mestre %}
+                        <td>
+                            <form method="POST" action="{{ url_for('magias.remover_magia', magia_id=magia.id) }}"
+                                  onsubmit='return confirm({{ ("Remover " ~ magia.nome ~ " do grimório?")|tojson }});'>
+                                <button type="submit" class="btn-danger btn-small">Remover</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% if e_mestre %}
+                    <tr>
+                        <td colspan="8">
+                            <details>
+                                <summary style="cursor:pointer;">✏️ Editar {{ magia.nome }}</summary>
+                                <div style="margin-top: 0.75rem;">
+                                    {{ form_magia(url_for('magias.editar_magia', magia_id=magia.id), magia) }}
+                                </div>
+                            </details>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1.5rem; text-align: center;">
+            <p style="color: var(--cor-texto-claro); margin: 0;">📜 Nenhuma magia no grimório.</p>
+        </div>
+        {% endif %}
+
+        {% if e_mestre %}
+        <details style="margin-top: 1.5rem;" {% if not magias %}open{% endif %}>
+            <summary style="cursor:pointer; font-weight:bold;">➕ Adicionar magia</summary>
+            <div style="margin-top: 0.75rem;">
+                {{ form_magia(url_for('magias.adicionar_magia', personagem_id=personagem.id)) }}
+            </div>
+        </details>
+        <datalist id="escolas-magia">
+            {% for escola in escolas_magia %}<option value="{{ escola }}">{% endfor %}
+        </datalist>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.location.hash === '#magias') {
+        document.querySelector('.tab-button[data-aba="magias"]').click();
+    }
+});
+</script>

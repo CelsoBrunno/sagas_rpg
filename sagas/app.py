@@ -7,7 +7,7 @@ from database import Database
 from models import (
     Personagem, Atributos, VantagemDesvantagem, Pericia,
     Campanha, Usuario, Local, NPC, Mapa, Imagem, Inventario, SessaoLog, PericiaCatalogo,
-    VantagemDesvantagemCatalogo, ItemCatalogo, Equipamento, Raca, Classe, Bestiario
+    VantagemDesvantagemCatalogo, ItemCatalogo, Equipamento, Raca, Classe, Bestiario, Magia
 )
 from config import Config
 import os
@@ -20,6 +20,7 @@ from utils.acesso import (
 )
 from utils.uploads import allowed_file
 from routes.bestiario import bp as bestiario_bp
+from routes.magias import bp as magias_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -40,6 +41,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 Database.init_app(app)
 
 app.register_blueprint(bestiario_bp)
+app.register_blueprint(magias_bp)
 
 # ==========================================
 # Rotas Principais
@@ -183,7 +185,9 @@ def ver_personagem(id):
                              'pontos_disponiveis': pontos_disponiveis_ficha,  # Pontos disponíveis na ficha
                              'pontos_disponiveis_usuario': pontos_disponiveis_usuario  # Pontos disponíveis do usuário (concedidos pelo admin)
                          },
-                         historico_pontos=historico_pontos)
+                         historico_pontos=historico_pontos,
+                         magias=Magia.listar_por_personagem(id),
+                         escolas_magia=Magia.ESCOLAS)
 
 @app.route('/api/personagem/<int:personagem_id>/biografia', methods=['PUT'])
 def atualizar_biografia(personagem_id):

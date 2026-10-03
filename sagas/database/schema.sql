@@ -226,6 +226,20 @@ CREATE TABLE IF NOT EXISTS pericias (
     FOREIGN KEY (personagem_id) REFERENCES personagens(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Grimório: magias do personagem (só o mestre edita)
+CREATE TABLE IF NOT EXISTS personagem_magias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    personagem_id INT NOT NULL,
+    nome VARCHAR(150) NOT NULL,
+    escola VARCHAR(60),
+    nh INT,
+    custo VARCHAR(60),
+    tempo VARCHAR(40),
+    duracao VARCHAR(40),
+    notas TEXT,
+    FOREIGN KEY (personagem_id) REFERENCES personagens(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Tabela de Inventário
 CREATE TABLE IF NOT EXISTS inventario (
     id INT AUTO_INCREMENT PRIMARY KEY,

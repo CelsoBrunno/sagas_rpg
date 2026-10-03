@@ -66,6 +66,7 @@
         <button class="tab-button active" onclick="mostrarAba('principal', event)">Principal</button>
         <button class="tab-button" onclick="mostrarAba('vantagens', event)">Vantagens & Desvantagens</button>
         <button class="tab-button" onclick="mostrarAba('pericias', event)">Perícias</button>
+        <button class="tab-button" data-aba="magias" onclick="mostrarAba('magias', event)">Magias</button>
         <button class="tab-button" onclick="mostrarAba('equipamentos', event)">Equipamentos</button>
         <button class="tab-button" onclick="mostrarAba('inventario', event)">Inventário & Notas</button>
         <button class="tab-button" onclick="mostrarAba('historico', event)">Histórico de Evolução</button>
@@ -296,6 +297,8 @@
             </div>
         </div>
     </div>
+
+    {% include "_personagem_magias.html" %}
 
     <!-- Aba Vantagens e Desvantagens -->
     <div id="tab-vantagens" class="tab-content">

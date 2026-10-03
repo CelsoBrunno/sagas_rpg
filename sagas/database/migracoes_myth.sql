@@ -68,3 +68,17 @@ CREATE TABLE IF NOT EXISTS bestiario_imagens (
 UPDATE campanhas SET nome_campanha = 'Os Senhores Caídos', descricao = 'Ano 17 da Grande Guerra contra o Escuro.'
 WHERE nome_campanha = 'Myth';
 UPDATE mapas SET nome_mapa = 'Mapa-múndi dos Senhores Caídos' WHERE nome_mapa = 'Mapa-múndi de Myth';
+
+-- 7. Grimório: magias do personagem
+CREATE TABLE IF NOT EXISTS personagem_magias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    personagem_id INT NOT NULL,
+    nome VARCHAR(150) NOT NULL,
+    escola VARCHAR(60),
+    nh INT,
+    custo VARCHAR(60),
+    tempo VARCHAR(40),
+    duracao VARCHAR(40),
+    notas TEXT,
+    FOREIGN KEY (personagem_id) REFERENCES personagens(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

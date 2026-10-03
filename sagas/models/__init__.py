@@ -29,6 +29,7 @@ from .item_catalogo import ItemCatalogo
 from .raca import Raca
 from .classe import Classe
 from .bestiario import Bestiario
+from .magia import Magia
 
 __all__ = [
     # Personagens
@@ -52,6 +53,7 @@ __all__ = [
     # Raças e Classes
     'Raca',
     'Classe',
-    'Bestiario'
+    'Bestiario',
+    'Magia'
 ]
 
