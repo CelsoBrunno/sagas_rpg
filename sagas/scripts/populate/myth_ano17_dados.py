@@ -183,6 +183,26 @@ LOCAIS = [
             'Alric será capturado pelo Enganador e seu exército do leste será destruído.'
         ),
     },
+    {
+        'nome': 'Muirthemne',
+        'tipo': 'Cidade',
+        'imagem_principal_url': '/static/images/locais/muirthemne.jpg',
+        'descricao_publica': (
+            'Antiga capital do Império Cath Bruig. Antes se chamava Llancarfan. Connacht mudou o nome para homenagear '
+            'os ferreiros anões que ajudaram a defendê-la. Foi a cidade dos grandes feiticeiros e artesãos do império, '
+            'e as lendas dizem que o Martelo do Sol foi forjado ali. O Escuro, comandado por Balor, cercou e saqueou '
+            'a cidade, e hoje só restam ruínas no meio da Barreira. Os veteranos dizem que os mortos ainda andam '
+            'pelas praças e que quase ninguém que entra volta.'
+        ),
+        'descricao_mestre': (
+            'Foi nestas ruínas que Truan das Cem Batalhas, a pedido de Alric, desenterrou a Cabeça ainda viva. '
+            'O Tain também foi feito aqui, por artesãos do Cath Bruig. '
+            'Balor saqueou a cidade que ele mesmo governou quando era Connacht. Não ligar os dois antes da batalha final.\n\n'
+            'FUTURO (Segunda Guerra, décadas depois): Alric manda a Legião retomar a cidade. Morteiros anões e quatro Trow '
+            'rompem as forças de Herod, a Legião entra no mausoléu assombrado atrás da coroa e Alric é coroado imperador '
+            'do Cath Bruig. A Guarda Garça renasce e repele um cerco de Myrkridia e gigantes mandado pelo Enganador.'
+        ),
+    },
 ]
 
 # A descrição do mapa é visível para os jogadores
