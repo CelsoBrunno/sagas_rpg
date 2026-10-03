@@ -57,9 +57,9 @@
                        accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
                 <small style="color: var(--cor-texto-claro);">
                     {% if local.imagem_principal_url %}
-                        Deixe em branco para manter a imagem atual. Formatos aceitos: PNG, JPG, JPEG, GIF, WEBP.
+                        Deixe em branco para manter a imagem atual. Padrão: 1280 × 720 px (16:9), JPG de até 400 KB.
                     {% else %}
-                        Formatos aceitos: PNG, JPG, JPEG, GIF, WEBP. Tamanho máximo recomendado: 10MB.
+                        Padrão: 1280 × 720 px (16:9), JPG de até 400 KB. Fora dessa proporção, a imagem é cortada no centro.
                     {% endif %}
                 </small>
             </div>

@@ -185,6 +185,25 @@ LOCAIS = [
     },
 ]
 
+# A descrição do mapa é visível para os jogadores
+MAPAS = [
+    {
+        'nome_mapa': 'Mapa-múndi de Myth',
+        'url_imagem': '/static/images/mapas/myth_mapa_mundi.png',
+        'tipo_mapa': 'Regional',
+        'local': None,
+        'descricao': (
+            'O mundo conhecido no ano 17 da guerra. A oeste, entre o Oceano Ocidental e a Cordilheira Cloudspine, '
+            'fica a Província, com Madrigal, Tyr, Covenant e Scales. Ao norte dela, as Cidades Livres do Norte, '
+            'com Tandem, Willow, Crow\'s Bridge e Otter Ferry. No centro, a floresta Ermine. A leste da Cloudspine, '
+            'passados os passos de Seven Gates e Bagrada, começa a Barreira, o deserto em volta das ruínas de '
+            'Muirthemne, já em terras do Escuro. Mais além ficam Forest Heart, os reinos anões de Myrgard e '
+            'Stoneheim, o Grande Vazio e, no extremo nordeste, Rhi\'anon. O quadro marcado no oeste é a região '
+            'onde a Legião está agora.'
+        ),
+    },
+]
+
 NPCS = [
     {
         'nome': 'Alric',

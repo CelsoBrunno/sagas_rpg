@@ -1,5 +1,5 @@
 # ==========================================
-# Popula a campanha Myth (ano 17) com raças, classes, locais, NPCs,
+# Popula a campanha Myth (ano 17) com raças, classes, locais, NPCs, mapas,
 # bestiário e as perícias/itens de Myth nos catálogos GURPS
 # ==========================================
 """
@@ -26,8 +26,8 @@ for stream in ("stdout", "stderr"):
         pass
 
 from database import Database
-from models import Raca, Classe, Local, NPC, PericiaCatalogo, ItemCatalogo, Bestiario
-from myth_ano17_dados import RACAS, CLASSES, LOCAIS, NPCS
+from models import Raca, Classe, Local, NPC, Mapa, PericiaCatalogo, ItemCatalogo, Bestiario
+from myth_ano17_dados import RACAS, CLASSES, LOCAIS, MAPAS, NPCS
 from myth_esquadra_dados import NPCS_ESQUADRA
 from myth_catalogo_dados import PERICIAS, ITENS
 from myth_bestiario_dados import CRIATURAS
@@ -82,6 +82,19 @@ def popular_npcs(campanha_id, locais_por_nome):
         dados['id_campanha'] = campanha_id
         NPC.criar(dados)
         print(f"  NPC criado: {npc['nome']}")
+
+
+def popular_mapas(campanha_id, locais_por_nome):
+    existentes = {m['nome_mapa'] for m in (Mapa.listar_por_campanha(campanha_id) or [])}
+    for mapa in MAPAS:
+        if mapa['nome_mapa'] in existentes:
+            print(f"  Mapa já existe: {mapa['nome_mapa']}")
+            continue
+        dados = {k: v for k, v in mapa.items() if k != 'local'}
+        dados['local_associado_id'] = locais_por_nome.get(mapa['local']) if mapa['local'] else None
+        dados['id_campanha'] = campanha_id
+        Mapa.criar(dados)
+        print(f"  Mapa criado: {mapa['nome_mapa']}")
 
 
 def atualizar_lore(existente, criatura):
@@ -159,6 +172,8 @@ def main():
     locais_por_nome = popular_locais(campanha_id)
     print("NPCs:")
     popular_npcs(campanha_id, locais_por_nome)
+    print("Mapas:")
+    popular_mapas(campanha_id, locais_por_nome)
     print("Catálogos GURPS (perícias e itens de Myth):")
     popular_catalogos_gurps()
     print("Bestiário:")
