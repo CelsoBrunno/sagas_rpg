@@ -2,6 +2,8 @@
 # Sistema de Campanha GURPS - Model: Inventario
 # ==========================================
 
+from __future__ import annotations
+
 from database import Database
 
 class Inventario:

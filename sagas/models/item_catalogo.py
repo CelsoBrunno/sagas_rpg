@@ -2,6 +2,8 @@
 # Catálogo de Itens (GURPS)
 # ==========================================
 
+from __future__ import annotations
+
 from database import Database
 
 
