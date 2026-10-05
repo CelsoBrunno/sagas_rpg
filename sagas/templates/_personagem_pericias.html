@@ -1,0 +1,71 @@
+    <!-- Aba Perícias -->
+    <div id="tab-pericias" class="tab-content">
+        <div class="card" id="card-pericias">
+            <h3>Perícias</h3>
+            <div style="margin-top: 1.5rem; margin-bottom: 1rem;">
+                <button type="button" class="btn-primary js-abrir-catalogo-pericias" data-personagem-id="{{ personagem.id }}" style="margin-bottom: 0.5rem;">
+                    📘 Adicionar Perícia do Catálogo
+                </button>
+                <p style="color: var(--cor-texto-claro); font-size: 0.9rem; margin-top: 0.5rem;">
+                    Selecione perícias do catálogo oficial e defina os pontos investidos conforme as regras GURPS.
+                </p>
+            </div>
+            <div class="table-responsive">
+                <table class="table-gurps">
+                    <thead>
+                        <tr>
+                            <th>Perícia</th>
+                            <th>Atributo</th>
+                            <th>Dificuldade</th>
+                            <th>Pontos Investidos</th>
+                            <th>NH Atual</th>
+                            <th>Pontos Gastos</th>
+                            <th>Nível (Ajuste)</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pericias-lista">
+                        {% for pericia in pericias %}
+                        {% set atributo_base_codigo = pericia.atributo_base %}
+                        {% set atributo_base_valor = atributos[atributo_base_codigo] if atributos and atributo_base_codigo in atributos else None %}
+                        {% set ajuste_nh = (pericia.nivel_habilidade_calculado - atributo_base_valor) if atributo_base_valor is not none else None %}
+                        <tr data-pericia-id="{{ pericia.id }}">
+                            <td>{{ pericia.nome_pericia }}</td>
+                            <td>{{ pericia.atributo_base }}</td>
+                            <td>
+                                {% if pericia.dificuldade == 'F' %}
+                                    Fácil
+                                {% elif pericia.dificuldade == 'M' %}
+                                    Média
+                                {% elif pericia.dificuldade == 'D' %}
+                                    Difícil
+                                {% elif pericia.dificuldade == 'VD' %}
+                                    Muito Difícil
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ pericia.pontos_investidos }}</td>
+                            <td><strong>{{ pericia.nivel_habilidade_calculado }}</strong></td>
+                            <td>{{ pericia.pontos_investidos }}</td>
+                            <td>
+                                {% if ajuste_nh is not none %}
+                                    {% if ajuste_nh > 0 %}+{% endif %}{{ ajuste_nh }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn-secondary btn-small js-evoluir-pericia" data-pericia-id="{{ pericia.id }}">
+                                    ↑ Evoluir
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+    </div>

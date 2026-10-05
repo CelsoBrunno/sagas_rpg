@@ -4,6 +4,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/personagem.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/retratos.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -20,6 +21,33 @@
         'acessorio': 'Acessório'
     } %}
     <div class="row" style="align-items: flex-end; gap: 1rem;">
+        <div class="retrato-ficha">
+            <div class="retrato retrato-grande">
+                {% if retrato_url %}
+                    <img src="{{ retrato_url }}" alt="{{ personagem.nome }}">
+                {% else %}
+                    <span>{{ personagem.nome[:1] }}</span>
+                {% endif %}
+            </div>
+            {% if retrato_do_bestiario %}
+                <small style="color: var(--cor-texto-claro);">Foto do bestiário</small>
+            {% elif pode_equipar %}
+                <form method="POST" action="{{ url_for('retratos.enviar_retrato', personagem_id=personagem.id) }}"
+                      enctype="multipart/form-data" class="retrato-form">
+                    <label class="btn-secondary btn-small">
+                        {{ 'Trocar retrato' if retrato_url else 'Enviar retrato' }}
+                        <input type="file" name="retrato" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                               hidden onchange="this.form.submit()">
+                    </label>
+                </form>
+                {% if retrato_url %}
+                    <form method="POST" action="{{ url_for('retratos.remover_retrato', personagem_id=personagem.id) }}"
+                          class="retrato-form" onsubmit="return confirm('Remover o retrato?');">
+                        <button type="submit" class="btn-danger btn-small">Remover</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
         <div class="col">
             <h1 style="margin-bottom: .25rem;">{{ personagem.nome }}</h1>
             {% set jogador_display = personagem.usuario_nome_completo or personagem.usuario_username or personagem.jogador_nome %}
@@ -30,9 +58,14 @@
                 <strong>Raça:</strong> {{ personagem.raca or 'Não definida' }}
                 | <strong>Classe:</strong> {{ personagem.tipo or '-' }}
             </p>
+            {% if acesso_ate %}
+            <p style="margin: 0.35rem 0 0; color: var(--cor-texto-claro);">
+                Você usa esta ficha até {{ acesso_ate.strftime('%d/%m/%Y %H:%M') }}.
+            </p>
+            {% endif %}
             {% if pode_equipar and personagem.id_usuario_jogador and personagem.id_usuario_jogador == session.get('user_id') %}
             <div style="margin-top: 0.5rem;">
-                <form method="POST" action="{{ url_for('deletar_minha_ficha') }}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja apagar sua ficha? Todos os pontos gastos serão retornados à sua conta e você poderá criar uma nova ficha.');">
+                <form method="POST" action="{{ url_for('ficha.deletar_minha_ficha') }}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja apagar sua ficha? Todos os pontos gastos serão retornados à sua conta e você poderá criar uma nova ficha.');">
                     <input type="hidden" name="personagem_id" value="{{ personagem.id }}">
                     <button type="submit" class="btn-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
                         🗑️ Apagar Ficha e Retornar Pontos
@@ -54,18 +87,40 @@
                 </select>
                 <button type="submit" class="btn-primary" style="padding: 0.4rem 0.9rem;">👤 Atribuir</button>
             </form>
+            <form method="POST" action="{{ url_for('dono_ficha.liberar_acesso', personagem_id=personagem.id) }}"
+                  style="margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <label for="acesso-jogador"><strong>Usar até:</strong></label>
+                <select id="acesso-jogador" name="usuario_id" class="form-control" style="width: auto;" required>
+                    <option value="">Jogador</option>
+                    {% for usuario in usuarios %}
+                    <option value="{{ usuario.id }}">{{ usuario.nome_completo or usuario.username }} ({{ usuario.username }})</option>
+                    {% endfor %}
+                </select>
+                <input type="datetime-local" name="expira_em" class="form-control" style="width: auto;" required>
+                <button type="submit" class="btn-primary" style="padding: 0.4rem 0.9rem;">Liberar</button>
+            </form>
+            {% for acesso in acessos_temporarios %}
+            <form method="POST" action="{{ url_for('dono_ficha.encerrar_acesso', personagem_id=personagem.id) }}"
+                  style="margin-top: 0.35rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <input type="hidden" name="usuario_id" value="{{ acesso.id_usuario }}">
+                <span style="color: var(--cor-texto-claro);">
+                    {{ acesso.nome_completo or acesso.username }} até {{ acesso.expira_em.strftime('%d/%m/%Y %H:%M') }}
+                </span>
+                <button type="submit" class="btn-secondary" style="padding: 0.3rem 0.7rem;">Encerrar</button>
+            </form>
+            {% endfor %}
             {% endif %}
         </div>
         <div class="col-2" style="margin-bottom:0.75rem;">
             {% if pontos_resumo %}
             <div class="card" style="margin:0 0 0 auto; max-width: 140px; padding:0.5rem; text-align:center;">
-                <h3 style="margin:0 0 .3rem 0; font-size:1rem;">Pts Disponíveis</h3>
+                <h3 style="margin:0 0 .3rem 0; font-size:1rem;">Pts</h3>
                 <div style="display:flex; justify-content:center;">
                     {% set pontos_mostrar = pontos_resumo.pontos_disponiveis_usuario if pontos_resumo.pontos_disponiveis_usuario is not none else pontos_resumo.pontos_disponiveis %}
                     {% set cor_fundo = '#28a745' if pontos_mostrar >= 0 else '#dc3545' %}
-                    <div id="pontos-disponiveis-valor" style="width:60px; height:60px; border-radius:50%; background:{{ cor_fundo }}; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:white;">
+                    <button type="button" id="pontos-disponiveis-valor" aria-pressed="false" title="Upar ficha" style="width:60px; height:60px; border-radius:50%; background:{{ cor_fundo }}; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:white;">
                         {{ pontos_mostrar }}
-                    </div>
+                    </button>
                 </div>
                 {% if pontos_resumo.pontos_disponiveis_usuario is not none %}
                 <small style="font-size:0.75rem; color:var(--cor-texto-claro); margin-top:0.25rem; display:block;">Concedidos pelo admin</small>
@@ -86,794 +141,18 @@
         <button class="tab-button" onclick="mostrarAba('equipamentos', event)">Equipamentos</button>
         <button class="tab-button" onclick="mostrarAba('inventario', event)">Inventário & Notas</button>
         <button class="tab-button" onclick="mostrarAba('historico', event)">Histórico de Evolução</button>
-        <a href="{{ url_for('ficha_premium', id=personagem.id) }}?teste=true" class="tab-button" target="_blank" style="text-decoration: none; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #3d2817; font-weight: bold;">📄 Ficha Premium</a>
+        <a href="{{ url_for('ficha.ficha_premium', id=personagem.id) }}?teste=true" class="tab-button" target="_blank" style="text-decoration: none; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #3d2817; font-weight: bold;">📄 Ficha Premium</a>
     </div>
 
-    <!-- Aba Principal -->
-    <div id="tab-principal" class="tab-content active">
-        <div class="card">
-            <h3>Atributos Básicos</h3>
-            {% if atributos %}
-                <div class="stat-row">
-                    <div class="atributo-display" style="position: relative;">
-                        <div>ST</div>
-                        <div id="stat-ST" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">{{ atributos.ST }}</div>
-                        <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
-                            <button class="btn-secondary btn-small" onclick="alterarAtributo('ST', -1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">-</button>
-                            <button class="btn-secondary btn-small" onclick="alterarAtributo('ST', 1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">+</button>
-                        </div>
-                    </div>
-                    <div class="atributo-display" style="position: relative;">
-                        <div>DX</div>
-                        <div id="stat-DX" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">{{ atributos.DX }}</div>
-                        <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
-                            <button class="btn-secondary btn-small" onclick="alterarAtributo('DX', -1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">-</button>
-                            <button class="btn-secondary btn-small" onclick="alterarAtributo('DX', 1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">+</button>
-                        </div>
-                    </div>
-                    <div class="atributo-display" style="position: relative;">
-                        <div>IQ</div>
-                        <div id="stat-IQ" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">{{ atributos.IQ }}</div>
-                        <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
-                            <button class="btn-secondary btn-small" onclick="alterarAtributo('IQ', -1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">-</button>
-                            <button class="btn-secondary btn-small" onclick="alterarAtributo('IQ', 1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">+</button>
-                        </div>
-                    </div>
-                    <div class="atributo-display" style="position: relative;">
-                        <div>HT</div>
-                        <div id="stat-HT" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">{{ atributos.HT }}</div>
-                        <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
-                            <button class="btn-secondary btn-small" onclick="alterarAtributo('HT', -1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">-</button>
-                            <button class="btn-secondary btn-small" onclick="alterarAtributo('HT', 1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">+</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row" style="margin-top: 1rem;">
-                    <div class="col">
-                        <div id="card-controle-atributos" class="card card-atributos-controle">
-                            <button id="btn-confirmar-atributos" class="btn-primary" onclick="confirmarMudancasAtributos()" disabled>
-                                ✅ Confirmar Mudanças
-                            </button>
-                            <button id="btn-cancelar-atributos" class="btn-secondary" onclick="cancelarMudancasAtributos()" disabled>
-                                ↩️ Cancelar
-                            </button>
-                            <div id="atributos-alerta" class="mensagem-suporte" role="alert" style="display:none; color: rgb(13, 110, 253);"></div>
-                            <div id="atributos-erro-detalhe" class="mensagem-suporte" style="display:none; color:#dc3545;"></div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="row" style="margin-top: 1rem;">
-                    <div class="col">
-                        <div class="card" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem;">
-                            <p style="color: var(--cor-texto-claro); margin: 0; text-align: center;">
-                                📋 <strong>PV Extra, PF Extra, Percepção Extra e Vontade Extra</strong><br>
-                                Só podem ser aumentados através de <strong>vantagens</strong> do catálogo.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-
-        {% if atributos_derivados %}
-        <div class="row">
-            <div class="col">
-                <div class="card">
-                    <h3>PV / PF / Per / VT</h3>
-                    <div class="stat-row">
-                        <div class="atributo-derivado">
-                            <div>PV</div>
-                            <div id="derivado-PV">{{ atributos_derivados.PV }}</div>
-                            {% if atributos %}
-                            <small style="display: block; margin-top: 5px; font-size: 0.85em; color: #000000;">
-                                Base: {{ atributos.ST }} 
-                                {% if atributos.PV_extra %}+ {{ atributos.PV_extra }} extra{% endif %}
-                                (Max: {{ atributos.ST * 2 }})
-                            </small>
-                            {% endif %}
-                        </div>
-                        <div class="atributo-derivado">
-                            <div>PF</div>
-                            <div id="derivado-PF">{{ atributos_derivados.PF }}</div>
-                            {% if atributos %}
-                            <small style="display: block; margin-top: 5px; font-size: 0.85em; color: #000000;">
-                                Base: {{ atributos.HT }} 
-                                {% if atributos.PF_extra %}+ {{ atributos.PF_extra }} extra{% endif %}
-                                (Max: {{ atributos.IQ * 2 }})
-                            </small>
-                            {% endif %}
-                        </div>
-                        <div class="atributo-derivado">
-                            <div>Per</div>
-                            <div id="derivado-Per">{{ atributos_derivados.percepcao }}</div>
-                            {% if atributos %}
-                            <small style="display: block; margin-top: 5px; font-size: 0.85em; color: #000000;">
-                                Base: {{ atributos.IQ }} 
-                                {% if atributos.percepcao_extra %}{% if atributos.percepcao_extra > 0 %}+{% endif %} {{ atributos.percepcao_extra }}{% endif %}
-                            </small>
-                            {% endif %}
-                        </div>
-                        <div class="atributo-derivado">
-                            <div>VT</div>
-                            <div id="derivado-VT">{{ atributos_derivados.vontade }}</div>
-                            {% if atributos %}
-                            <small style="display: block; margin-top: 5px; font-size: 0.85em; color: #000000;">
-                                Base: {{ atributos.IQ }} 
-                                {% if atributos.vontade_extra %}{% if atributos.vontade_extra > 0 %}+{% endif %} {{ atributos.vontade_extra }}{% endif %}
-                            </small>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-2">
-                <div class="card">
-                    <h3>Dados</h3>
-                    {% set bonus_inventario = inventario_efeitos.bonus if inventario_efeitos and inventario_efeitos.bonus else {} %}
-                    {% set dano_em_uso = inventario_efeitos.dano_em_uso if inventario_efeitos and inventario_efeitos.dano_em_uso else {} %}
-                    {% set ns = namespace(nomes=[]) %}
-                    {% if dano_em_uso.gdp_item and dano_em_uso.gdp_item not in ns.nomes %}
-                        {% set ns.nomes = ns.nomes + [dano_em_uso.gdp_item] %}
-                    {% endif %}
-                    {% if dano_em_uso.bal_item and dano_em_uso.bal_item not in ns.nomes %}
-                        {% set ns.nomes = ns.nomes + [dano_em_uso.bal_item] %}
-                    {% endif %}
-                    <table class="tabela-dados-basicos">
-                        <thead>
-                            <tr>
-                                <th>Base</th>
-                                <th>Adicional{% if ns.nomes %} ({{ ns.nomes | join(', ') }}){% endif %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>GPD:</strong> {{ atributos_derivados.gpd or '-' }}</td>
-                                <td>
-                                    {% set gdp_mod = dano_em_uso.gdp_mod %}
-                                    {% if gdp_mod is not none %}
-                                        {{ '+' if gdp_mod > 0 else '' }}{{ gdp_mod }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>BAL:</strong> {{ atributos_derivados.bal or '-' }}</td>
-                                <td>
-                                    {% set bal_mod = dano_em_uso.bal_mod %}
-                                    {% if bal_mod is not none %}
-                                        {{ '+' if bal_mod > 0 else '' }}{{ bal_mod }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>Vs / Deslocamento / Esquiva / Aparar / Bloqueio</h3>
-            <div class="stat-row">
-                <div class="atributo-derivado"><div>Vs</div><div id="derivado-Velocidade">{{ atributos_derivados.velocidade_basica }}</div></div>
-                <div class="atributo-derivado"><div>Deslocamento</div><div>{{ atributos_derivados.deslocamento }}</div></div>
-                <div class="atributo-derivado"><div>Esquiva</div><div id="derivado-Esquiva">{{ atributos_derivados.esquiva }}</div></div>
-                <div class="atributo-derivado"><div>Aparar</div><div>{{ atributos_derivados.aparar }}</div></div>
-                <div class="atributo-derivado"><div>Bloqueio</div><div>{{ atributos_derivados.bloqueio }}</div></div>
-                <div class="atributo-derivado">
-                    <div>RD</div>
-                    {% set dr_bonus = inventario_efeitos.bonus.dr if inventario_efeitos and inventario_efeitos.bonus else 0 %}
-                    <div>{{ atributos_derivados.dr_total }}</div>
-                    <small style="display:block; margin-top:4px; font-size:0.85em; color:#f1f1f1;">
-                        Base: {{ atributos_derivados.dr_base or 0 }}{% if dr_bonus %} + {{ dr_bonus }}{% endif %}
-                    </small>
-                </div>
-            </div>
-            <div class="stat-row">
-                <div class="atributo-derivado"><div>Peso Máximo</div><div id="derivado-PM">{{ atributos_derivados.PM }}</div></div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if personagem.biografia %}
-        <div class="card">
-            <h3>Biografia</h3>
-            <p>{{ personagem.biografia }}</p>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Aba Histórico -->
-    <div id="tab-historico" class="tab-content">
-        <div class="card">
-            <h3>Histórico de Evolução</h3>
-            <div id="inventario-tabela-wrapper" class="table-responsive">
-                <table class="table-gurps">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Sessão</th>
-                            <th>Pontos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for h in historico_pontos %}
-                        <tr>
-                            <td>{{ h.data_sessao.strftime('%d/%m/%Y') if h.data_sessao else '' }}</td>
-                            <td>{{ h.descricao or '-' }}</td>
-                            <td><strong>+{{ h.pontos_ganhos }}</strong></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
+    {% include "_personagem_principal.html" %}
+    {% include "_personagem_historico.html" %}
     {% include "_personagem_magias.html" %}
-
-    <!-- Aba Vantagens e Desvantagens -->
-    <div id="tab-vantagens" class="tab-content">
-        <div class="card">
-            <h3>Vantagens e Desvantagens</h3>
-            
-            <div style="margin-bottom: 1rem;">
-                <button type="button" class="btn-primary js-abrir-catalogo-vd" data-personagem-id="{{ personagem.id }}" style="margin-bottom: 0.5rem;">
-                    📚 Adicionar do Catálogo
-                </button>
-                <p style="color: var(--cor-texto-claro); font-size: 0.9rem; margin-top: 0.5rem;">
-                    Selecione vantagens e desvantagens do catálogo pré-cadastrado.
-                </p>
-            </div>
-            
-            <!-- Modal do Catálogo -->
-            <div id="modal-catalogo-vd" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
-                <div style="background: white; margin: 2rem auto; max-width: 900px; padding: 2rem; border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3>Catálogo de Vantagens e Desvantagens</h3>
-                        <button onclick="fecharCatalogoVD()" style="background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Fechar</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 1rem;">
-                        <input type="text" id="busca-vd" placeholder="Buscar por nome..." onkeyup="filtrarCatalogoVD()" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-                    </div>
-                    
-                    <div style="margin-bottom: 1rem;">
-                        <button onclick="filtrarTipoVD('')" class="btn-secondary" style="margin-right: 0.5rem;">Todas</button>
-                        <button onclick="filtrarTipoVD('Vantagem')" class="btn-secondary" style="margin-right: 0.5rem;">Vantagens</button>
-                        <button onclick="filtrarTipoVD('Desvantagem')" class="btn-secondary">Desvantagens</button>
-                    </div>
-                    
-                    <div id="lista-catalogo-vd" style="max-height: 500px; overflow-y: auto;">
-                        <p style="text-align: center; padding: 2rem; color: #666;">⏳ Carregando catálogo...</p>
-                    </div>
-                </div>
-            </div>
-
-            {% if vantagens and vantagens|length > 0 %}
-            <div class="table-responsive">
-                <table class="table-gurps">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Custo em Pontos</th>
-                            <th>Notas</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="vantagens-lista">
-                        {% for vantagem in vantagens %}
-                        <tr>
-                            <td><strong>{{ vantagem.nome_item }}</strong></td>
-                            <td class="{% if vantagem.custo_em_pontos < 0 %}texto-desvantagem{% else %}texto-vantagem{% endif %}">
-                                {{ vantagem.custo_em_pontos }} pts
-                            </td>
-                            <td>{{ vantagem.notas or '-' }}</td>
-                            <td>
-                                <button class="btn-danger btn-small js-remover-vantagem" data-vantagem-id="{{ vantagem.id }}">Remover</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div id="inventario-empty-state" class="card" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1.5rem; text-align: center;">
-                <p style="color: var(--cor-texto-claro); margin: 0;">
-                    📋 Nenhuma vantagem ou desvantagem cadastrada ainda.<br>
-                    Clique em "📚 Adicionar do Catálogo" para começar.
-                </p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Aba Perícias -->
-    <div id="tab-pericias" class="tab-content">
-        <div class="card" id="card-pericias">
-            <h3>Perícias</h3>
-            <div style="margin-top: 1.5rem; margin-bottom: 1rem;">
-                <button type="button" class="btn-primary js-abrir-catalogo-pericias" data-personagem-id="{{ personagem.id }}" style="margin-bottom: 0.5rem;">
-                    📘 Adicionar Perícia do Catálogo
-                </button>
-                <p style="color: var(--cor-texto-claro); font-size: 0.9rem; margin-top: 0.5rem;">
-                    Selecione perícias do catálogo oficial e defina os pontos investidos conforme as regras GURPS.
-                </p>
-            </div>
-            <div class="table-responsive">
-                <table class="table-gurps">
-                    <thead>
-                        <tr>
-                            <th>Perícia</th>
-                            <th>Atributo</th>
-                            <th>Dificuldade</th>
-                            <th>Pontos Investidos</th>
-                            <th>NH Atual</th>
-                            <th>Pontos Gastos</th>
-                            <th>Nível (Ajuste)</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pericias-lista">
-                        {% for pericia in pericias %}
-                        {% set atributo_base_codigo = pericia.atributo_base %}
-                        {% set atributo_base_valor = atributos[atributo_base_codigo] if atributos and atributo_base_codigo in atributos else None %}
-                        {% set ajuste_nh = (pericia.nivel_habilidade_calculado - atributo_base_valor) if atributo_base_valor is not none else None %}
-                        <tr data-pericia-id="{{ pericia.id }}">
-                            <td>{{ pericia.nome_pericia }}</td>
-                            <td>{{ pericia.atributo_base }}</td>
-                            <td>
-                                {% if pericia.dificuldade == 'F' %}
-                                    Fácil
-                                {% elif pericia.dificuldade == 'M' %}
-                                    Média
-                                {% elif pericia.dificuldade == 'D' %}
-                                    Difícil
-                                {% elif pericia.dificuldade == 'VD' %}
-                                    Muito Difícil
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>{{ pericia.pontos_investidos }}</td>
-                            <td><strong>{{ pericia.nivel_habilidade_calculado }}</strong></td>
-                            <td>{{ pericia.pontos_investidos }}</td>
-                            <td>
-                                {% if ajuste_nh is not none %}
-                                    {% if ajuste_nh > 0 %}+{% endif %}{{ ajuste_nh }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>
-                                <button type="button" class="btn-secondary btn-small js-evoluir-pericia" data-pericia-id="{{ pericia.id }}">
-                                    ↑ Evoluir
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-
-        </div>
-    </div>
-
-    <!-- Modal Catálogo de Perícias -->
-    <div id="modal-catalogo-pericias" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1100; overflow-y:auto;">
-        <div style="background:white; margin:2rem auto; max-width:900px; padding:2rem; border-radius:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h3>Catálogo de Perícias</h3>
-                <button onclick="fecharCatalogoPericias()" style="background:#dc3545; color:white; border:none; padding:0.5rem 1rem; border-radius:4px; cursor:pointer;">Fechar</button>
-            </div>
-
-            <div style="margin-bottom:1rem;">
-                <input type="text" id="busca-pericia" placeholder="Buscar por nome..." onkeyup="filtrarCatalogoPericias()" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
-            </div>
-
-            <div style="margin-bottom:1rem;">
-                <button onclick="filtrarTipoPericia('')" class="btn-secondary" style="margin-right:0.5rem;">Todas</button>
-                <button onclick="filtrarTipoPericia('F')" class="btn-secondary" style="margin-right:0.5rem;">Fácil</button>
-                <button onclick="filtrarTipoPericia('M')" class="btn-secondary" style="margin-right:0.5rem;">Média</button>
-                <button onclick="filtrarTipoPericia('D')" class="btn-secondary" style="margin-right:0.5rem;">Difícil</button>
-                <button onclick="filtrarTipoPericia('VD')" class="btn-secondary">Muito Difícil</button>
-            </div>
-
-            <div id="lista-catalogo-pericias" style="max-height:500px; overflow-y:auto;">
-                <p style="text-align:center; padding:2rem; color:#666;">⏳ Carregando catálogo...</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-catalogo-itens" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1100; overflow-y:auto;">
-        <div style="background:white; margin:2rem auto; max-width:1000px; padding:1.5rem; border-radius:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h3>Catálogo de Itens</h3>
-                <button onclick="fecharCatalogoItens()" style="background:#dc3545; color:white; border:none; padding:0.5rem 1rem; border-radius:4px; cursor:pointer;">Fechar</button>
-            </div>
-
-            <div style="margin-bottom:1rem;">
-                <input type="text" id="busca-item" placeholder="Buscar por nome..." onkeyup="filtrarCatalogoItens()" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
-            </div>
-
-            <div id="lista-catalogo-itens" style="max-height:500px; overflow:auto;">
-                <p style="text-align:center; padding:2rem; color:#666;">⏳ Carregando catálogo...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Detalhes do Item (Catálogo) -->
-    <div id="modal-detalhes-item" onclick="if(event.target.id === 'modal-detalhes-item') fecharModalDetalhesItem();" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1200; align-items:center; justify-content:center; padding:1.5rem;">
-        <div style="background:white; max-width:600px; width:100%; padding:2rem; border-radius:8px; position:relative; max-height:80vh; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
-            <button onclick="fecharModalDetalhesItem()" style="position:absolute; top:1rem; right:1rem; background:#dc3545; color:white; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.3rem; line-height:1; font-weight:bold; display:flex; align-items:center; justify-content:center;">×</button>
-            <div id="modal-detalhes-item-content">
-                <!-- Conteúdo será preenchido dinamicamente -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Detalhes do Equipamento -->
-    <div id="modal-detalhes-equipamento" onclick="if(event.target.id === 'modal-detalhes-equipamento') fecharModalDetalhesEquipamento();" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1200; align-items:center; justify-content:center; padding:1.5rem;">
-        <div style="background:white; max-width:600px; width:100%; padding:2rem; border-radius:8px; position:relative; max-height:80vh; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
-            <button onclick="fecharModalDetalhesEquipamento()" style="position:absolute; top:1rem; right:1rem; background:#dc3545; color:white; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.3rem; line-height:1; font-weight:bold; display:flex; align-items:center; justify-content:center;">×</button>
-            <div id="modal-detalhes-equipamento-content">
-                <!-- Conteúdo será preenchido dinamicamente -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Detalhes do Inventário -->
-    <div id="modal-detalhes-inventario" onclick="if(event.target.id === 'modal-detalhes-inventario') fecharModalDetalhesInventario();" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1200; align-items:center; justify-content:center; padding:1.5rem;">
-        <div style="background:white; max-width:600px; width:100%; padding:2rem; border-radius:8px; position:relative; max-height:80vh; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
-            <button onclick="fecharModalDetalhesInventario()" style="position:absolute; top:1rem; right:1rem; background:#dc3545; color:white; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.3rem; line-height:1; font-weight:bold; display:flex; align-items:center; justify-content:center;">×</button>
-            <div id="modal-detalhes-inventario-content">
-                <!-- Conteúdo será preenchido dinamicamente -->
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-evoluir-pericia" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1050; align-items:center; justify-content:center; padding:1.5rem;">
-        <div class="card" style="max-width:520px; width:100%; border-radius:12px; padding:1.5rem; position:relative;">
-            <button type="button" onclick="fecharModalEvoluirPericia()" style="position:absolute; top:0.75rem; right:0.75rem; background:none; border:none; font-size:1.25rem;">×</button>
-            <h3 style="margin-bottom:1rem;">Evoluir Perícia</h3>
-            <div id="modal-evoluir-conteudo"></div>
-            <div id="modal-evoluir-alerta" class="mensagem-suporte" style="display:none; margin-top:1rem; color:#dc3545;"></div>
-            <div style="display:flex; gap:0.75rem; margin-top:1.5rem; justify-content:flex-end;">
-                <button type="button" class="btn-secondary" onclick="fecharModalEvoluirPericia()">Cancelar</button>
-                <button type="button" id="btn-confirmar-evolucao" class="btn-primary" onclick="confirmarEvolucaoPericia()">Confirmar Gastos</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Aba Equipamentos -->
-    <div id="tab-equipamentos" class="tab-content">
-        <div class="card">
-            <h3>Equipamentos</h3>
-            <div style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
-                <p style="margin:0; color: var(--cor-texto-claro); font-size:0.9rem;">Utilize o catálogo para adquirir armas, armaduras e acessórios equipáveis.</p>
-                <button type="button" class="btn-primary js-abrir-catalogo-equipamentos" data-personagem-id="{{ personagem.id }}">Comprar Equipamento</button>
-            </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem;">
-                <div></div>
-                <div id="equipamentos-dinheiro" style="text-align:right;">
-                    <span style="display:block; font-size:0.85rem; color:var(--cor-texto-claro);">Dinheiro disponível</span>
-                    <strong>{{ '%.2f'|format(dinheiro_disponivel or 0) }}</strong>
-                </div>
-            </div>
-
-            <div id="equipamentos-resumo" style="margin-bottom: 1rem;">
-                <strong>Peso total:</strong> {{ '%.2f'|format(peso_total) }} |
-                <strong>Nível de carga:</strong> {{ nivel_carga }}
-            </div>
-
-            {% if inventario_efeitos %}
-            <div id="equipamentos-efeitos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
-                <p style="margin:0 0 .75rem 0; font-weight:600;">Resumo de efeitos ativos</p>
-                <ul id="equipamentos-efeitos-resumo-lista" style="margin:0; padding-left:1.2rem;">
-                    {% if inventario_efeitos.resumo_textual %}
-                        {% for linha in inventario_efeitos.resumo_textual %}
-                        <li>{{ linha }}</li>
-                        {% endfor %}
-                    {% else %}
-                        <li>Nenhum efeito adicional ativo.</li>
-                    {% endif %}
-                </ul>
-            </div>
-            <div id="equipamentos-danos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
-                <p style="margin:0 0 .75rem 0; font-weight:600;">Danos por armas equipadas</p>
-                <ul id="equipamentos-danos-resumo-lista" style="margin:0; padding-left:1.2rem;">
-                    {% if inventario_efeitos.danos %}
-                        {% for dano in inventario_efeitos.danos %}
-                        <li>
-                            {{ dano.nome }}:
-                            {% if dano.dano_bal %}Bal {{ dano.dano_bal }}{% endif %}
-                            {% if dano.dano_bal and dano.dano_gdp %} | {% endif %}
-                            {% if dano.dano_gdp %}GdP {{ dano.dano_gdp }}{% endif %}
-                        </li>
-                        {% endfor %}
-                    {% else %}
-                        <li>Nenhuma arma equipada com modificadores de dano.</li>
-                    {% endif %}
-                </ul>
-            </div>
-            {% if inventario_efeitos.rd and inventario_efeitos.rd|length > 0 %}
-            <div id="equipamentos-rd-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
-                <p style="margin:0 0 .75rem 0; font-weight:600;">Redução de Dano (RD) por equipamentos</p>
-                <ul id="equipamentos-rd-resumo-lista" style="margin:0; padding-left:1.2rem;">
-                    {% for rd_item in inventario_efeitos.rd %}
-                    <li>
-                        <strong>{{ rd_item.nome }}</strong> ({{ slot_labels.get(rd_item.slot, rd_item.slot) }}):
-                        RD {{ rd_item.rd_mod }}{% if rd_item.rd_tipo %} vs {{ rd_item.rd_tipo }}{% else %} geral{% endif %}
-                    </li>
-                    {% endfor %}
-                    {% if inventario_efeitos.rd_total and inventario_efeitos.rd_total > 0 %}
-                    <li style="margin-top: 0.5rem; font-weight: bold; border-top: 1px solid var(--cor-borda); padding-top: 0.5rem;">
-                        RD Total: {{ inventario_efeitos.rd_total }}
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-            {% endif %}
-            {% endif %}
-
-            <div id="equipamentos-tabela-wrapper" class="table-responsive">
-                <table class="table-gurps" style="font-size:0.85em;">
-                    <thead>
-                        <tr>
-                            <th style="min-width:120px; padding:0.5rem;">Item</th>
-                            <th style="width:60px; padding:0.5rem;">Slot</th>
-                            <th style="min-width:100px; padding:0.5rem;">Categoria</th>
-                            <th style="width:70px; padding:0.5rem;">Dano (Bal)</th>
-                            <th style="width:70px; padding:0.5rem;">Dano (GdP)</th>
-                            <th style="width:70px; padding:0.5rem;">RD</th>
-                            <th style="width:70px; padding:0.5rem;">Peso</th>
-                            <th style="width:100px; padding:0.5rem;">Preço</th>
-                            <th style="width:80px; padding:0.5rem;">Detalhes</th>
-                            <th style="width:120px; padding:0.5rem;">Gerenciar</th>
-                        </tr>
-                    </thead>
-                    <tbody id="equipamentos-lista" data-pode-equipar="{{ 1 if pode_equipar else 0 }}">
-                        {% if equipamentos and equipamentos|length > 0 %}
-                            {% for item in equipamentos %}
-                            <tr style="font-size:0.9em;">
-                                <td style="font-weight:600; padding:0.5rem;">{{ item.nome_item }}</td>
-                                <td style="text-align:center; padding:0.5rem;">{{ slot_labels.get(item.slot, item.slot) or '-' }}</td>
-                                {% set categoria_bruta = item.categoria or '-' %}
-                                {% if categoria_bruta != '-' %}
-                                    {% set categoria_bruta = categoria_bruta|replace('Armas à ', '') %}
-                                    {% set categoria_bruta = categoria_bruta|replace('Armas ', '') %}
-                                {% endif %}
-                                <td style="padding:0.5rem;">{{ categoria_bruta }}</td>
-                                {% set bal_mod = item.dano_bal_mod %}
-                                {% set gdp_mod = item.dano_gdp_mod %}
-                                <td style="text-align:center; padding:0.5rem;">
-                                    {% if bal_mod is not none and bal_mod != 0 %}
-                                        {{ '+' if bal_mod > 0 else '' }}{{ bal_mod }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td style="text-align:center; padding:0.5rem;">
-                                    {% if gdp_mod is not none and gdp_mod != 0 %}
-                                        {{ '+' if gdp_mod > 0 else '' }}{{ gdp_mod }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td style="text-align:center; padding:0.5rem;">
-                                    {% if item.rd_mod is not none and item.rd_mod != 0 %}
-                                        RD {{ item.rd_mod }}{% if item.rd_tipo %} ({{ item.rd_tipo }}){% endif %}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td style="text-align:right; padding:0.5rem;">{{ '%.2f'|format(item.peso or 0) }}</td>
-                                <td style="text-align:right; padding:0.5rem;">₣ {{ '%.2f'|format(item.preco_unitario or 0) }}</td>
-                                <td style="text-align:center; padding:0.5rem;">
-                                    {% if item.efeitos or item.notas %}
-                                        <button onclick="abrirModalDetalhesEquipamento({{ item.id }})" class="btn-secondary js-detalhes-equipamento" data-item-id="{{ item.id }}" style="padding:0.25rem 0.5rem; font-size:0.75em; cursor:pointer; border:1px solid #ddd; background:#f8f9fa; color:#333; border-radius:4px;" title="Ver detalhes">
-                                            Detalhes
-                                        </button>
-                                    {% else %}
-                                        <span style="color:#999; font-size:0.85em;">-</span>
-                                    {% endif %}
-                                </td>
-                                <td style="padding:0.5rem; text-align:center;">
-                                    {% if pode_equipar %}
-                                        <div class="js-gerenciar-equipamento" style="display:flex; flex-direction:column; gap:0.35rem; align-items:center;">
-                                            {% if item.slots_disponiveis %}
-                                            <select class="form-control form-control-sm js-slot-equipamento" data-item-id="{{ item.id }}" data-current-slot="{{ item.slot or '' }}" style="font-size:0.85em; width:120px; margin:0 auto; display:block; text-align:center; text-align-last:center; padding:0.25rem 0.5rem;">
-                                                <option value="" {% if not item.slot %}selected{% endif %}>-</option>
-                                                {% for slot_codigo in item.slots_disponiveis %}
-                                                <option value="{{ slot_codigo }}" {% if item.slot == slot_codigo %}selected{% endif %}>{{ slot_labels.get(slot_codigo, slot_codigo) }}</option>
-                                                {% endfor %}
-                                            </select>
-                                            {% endif %}
-                                            {% if item.slot %}
-                                            <button type="button" class="btn-secondary btn-small js-desequipar-item" data-item-id="{{ item.id }}" style="font-size:0.8em;">Desequipar</button>
-                                            {% endif %}
-                                        </div>
-                                    {% else %}
-                                        <span style="color: var(--cor-texto-claro); font-size:0.85rem;">Sem permissão</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="9" style="text-align:center; color: var(--cor-texto-claro); padding:0.5rem;">Nenhum item equipado.</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Aba Inventário -->
-    <div id="tab-inventario" class="tab-content">
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem;">
-                <h3 style="margin:0;">Inventário</h3>
-                <div id="inventario-dinheiro" style="text-align:right;">
-                    <span style="display:block; font-size:0.85rem; color:var(--cor-texto-claro);">Dinheiro disponível</span>
-                    <strong id="dinheiro-disponivel-valor">{{ '%.2f'|format(dinheiro_disponivel or 0) }}</strong>
-                </div>
-            </div>
-
-            <div id="inventario-resumo" style="margin-bottom: 1rem;">
-                <strong>Peso total:</strong> {{ '%.2f'|format(peso_total) }} |
-                <strong>Nível de carga:</strong> {{ nivel_carga }}
-            </div>
-
-            {% if inventario_efeitos %}
-            <div id="inventario-efeitos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
-                <p style="margin:0 0 .75rem 0; font-weight:600;">Resumo de efeitos ativos</p>
-                <ul id="inventario-efeitos-resumo-lista" style="margin:0; padding-left:1.2rem;">
-                    {% if inventario_efeitos.resumo_textual %}
-                        {% for linha in inventario_efeitos.resumo_textual %}
-                        <li>{{ linha }}</li>
-                        {% endfor %}
-                    {% else %}
-                        <li>Nenhum efeito adicional ativo.</li>
-                    {% endif %}
-                </ul>
-            </div>
-            <div id="inventario-danos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
-                <p style="margin:0 0 .75rem 0; font-weight:600;">Danos por armas equipadas</p>
-                <ul id="inventario-danos-resumo-lista" style="margin:0; padding-left:1.2rem;">
-                    {% if inventario_efeitos.danos %}
-                        {% for dano in inventario_efeitos.danos %}
-                        <li>
-                            {{ dano.nome }}:
-                            {% if dano.dano_bal %}Bal {{ dano.dano_bal }}{% endif %}
-                            {% if dano.dano_bal and dano.dano_gdp %} | {% endif %}
-                            {% if dano.dano_gdp %}GdP {{ dano.dano_gdp }}{% endif %}
-                        </li>
-                        {% endfor %}
-                    {% else %}
-                        <li>Nenhuma arma equipada com modificadores de dano.</li>
-                    {% endif %}
-                </ul>
-            </div>
-            {% endif %}
-
-            {% if session.get('role') == 'admin' %}
-            <form id="form-inventario" data-personagem-id="{{ personagem.id }}" style="margin-bottom: 1.5rem;">
-                <div class="row">
-                    <div class="col-3">
-                        <div class="form-group">
-                            <label class="form-label">Item</label>
-                            <input type="text" id="inv-nome" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="col-2">
-                        <div class="form-group">
-                            <label class="form-label">Quantidade</label>
-                            <input type="number" id="inv-quantidade" class="form-control" min="1" value="1" required>
-                        </div>
-                    </div>
-                    <div class="col-2">
-                        <div class="form-group">
-                            <label class="form-label">Peso (por unidade)</label>
-                            <input type="number" id="inv-peso" class="form-control" step="0.01" min="0" value="0">
-                        </div>
-                    </div>
-                    <div class="col-2">
-                        <div class="form-group">
-                            <label class="form-label">Preço Unitário</label>
-                            <input type="number" id="inv-preco" class="form-control" step="0.01" min="0" value="0">
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="form-group">
-                            <label class="form-label">Notas</label>
-                            <input type="text" id="inv-notas" class="form-control">
-                        </div>
-                    </div>
-                    <div class="col" style="display: flex; align-items: flex-end;">
-                        <button type="submit" class="btn-primary">Adicionar</button>
-                    </div>
-                </div>
-            </form>
-            {% endif %}
-
-            <div style="margin-top: 1.5rem; margin-bottom: 1rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
-                <p style="color: var(--cor-texto-claro); font-size: 0.9rem; margin:0;">Aqui ficam apenas consumíveis e itens diversos.</p>
-                <button type="button" class="btn-primary js-abrir-catalogo-consumiveis" data-personagem-id="{{ personagem.id }}" style="margin-bottom: 0.5rem;">
-                    Comprar Consumível
-                </button>
-            </div>
-
-            <div id="inventario-tabela-wrapper" class="table-responsive {% if not inventario or inventario|length == 0 %}is-hidden{% endif %}">
-                <table class="table-gurps" style="font-size:0.85em;">
-                    <thead>
-                        <tr>
-                            <th style="min-width:120px; padding:0.5rem;">Item</th>
-                            <th style="min-width:100px; padding:0.5rem;">Categoria</th>
-                            <th style="width:60px; padding:0.5rem;">Qtd</th>
-                            <th style="width:70px; padding:0.5rem;">Peso</th>
-                            <th style="width:90px; padding:0.5rem;">Peso Total</th>
-                            <th style="width:100px; padding:0.5rem;">Preço Unit.</th>
-                            <th style="width:100px; padding:0.5rem;">Valor Total</th>
-                            <th style="width:120px; padding:0.5rem;">Usar</th>
-                            <th style="width:80px; padding:0.5rem;">Detalhes</th>
-                            {% if session.get('role') == 'admin' %}<th style="width:90px; padding:0.5rem;">Ações</th>{% endif %}
-                        </tr>
-                    </thead>
-                    <tbody id="inventario-lista" data-is-admin="{{ 1 if session.get('role') == 'admin' else 0 }}" data-pode-equipar="{{ 1 if pode_equipar else 0 }}">
-                        {% for item in inventario %}
-                        <tr style="font-size:0.9em;">
-                            <td style="font-weight:600; padding:0.5rem;">{{ item.nome_item }}</td>
-                            <td style="padding:0.5rem;">{{ item.categoria or '-' }}</td>
-                            <td style="text-align:center; padding:0.5rem;">{{ item.quantidade }}</td>
-                            <td style="text-align:right; padding:0.5rem;">{{ '%.2f'|format(item.peso or 0) }}</td>
-                            <td style="text-align:right; padding:0.5rem;">{{ '%.2f'|format((item.peso or 0) * (item.quantidade or 0)) }}</td>
-                            <td style="text-align:right; padding:0.5rem;">₣ {{ '%.2f'|format(item.preco_unitario or 0) }}</td>
-                            <td style="text-align:right; padding:0.5rem;">₣ {{ '%.2f'|format((item.preco_unitario or 0) * (item.quantidade or 0)) }}</td>
-                            <td style="padding:0.5rem;">
-                                <div style="display:flex; gap: .5rem; align-items:center;">
-                                    <input type="number" min="1" max="{{ item.quantidade }}" value="1" class="form-control" style="max-width: 70px; font-size:0.85em;" id="usar-{{ item.id }}">
-                                    <button class="btn-secondary btn-small js-consumir-item" data-item-id="{{ item.id }}" style="font-size:0.8em; padding:0.25rem 0.5rem;">Usar</button>
-                                </div>
-                            </td>
-                            <td style="text-align:center; padding:0.5rem;">
-                                {% if item.efeitos or item.notas %}
-                                    <button onclick="abrirModalDetalhesInventario({{ item.id }})" class="btn-secondary js-detalhes-inventario" data-item-id="{{ item.id }}" style="padding:0.25rem 0.5rem; font-size:0.75em; cursor:pointer; border:1px solid #ddd; background:#f8f9fa; color:#333; border-radius:4px;" title="Ver detalhes">
-                                        Detalhes
-                                    </button>
-                                {% else %}
-                                    <span style="color:#999; font-size:0.85em;">-</span>
-                                {% endif %}
-                            </td>
-                            {% if session.get('role') == 'admin' %}
-                            <td>
-                                <button class="btn-danger btn-small js-remover-item" data-item-id="{{ item.id }}">Remover</button>
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div id="inventario-empty-state" class="card card-empty-inventario {% if inventario and inventario|length > 0 %}is-hidden{% endif %}">
-                <p style="color: var(--cor-texto-claro); margin: 0;">
-                    🎒 Nenhum item no inventário ainda.<br>
-                    Utilize o botão "💰 Comprar Item do Catálogo" ou, como mestre, adicione manualmente.
-                </p>
-            </div>
-
-            <p style="margin-top:0.75rem; font-size:0.95rem; color:var(--cor-texto-claro);">
-                Valor total do inventário: <strong id="valor-total-inventario">{{ '%.2f'|format(valor_total_inventario or 0) }}</strong>
-            </p>
-        </div>
-    </div>
+    {% include "_personagem_vantagens.html" %}
+    {% include "_personagem_pericias.html" %}
+    {% include "_personagem_modais.html" %}
+    {% include "_personagem_equipamentos.html" %}
+    {% include "_personagem_inventario.html" %}
 
     
 </div>

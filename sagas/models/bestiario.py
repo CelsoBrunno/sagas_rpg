@@ -106,6 +106,18 @@ class Bestiario:
         Database.execute_query("DELETE FROM bestiario_imagens WHERE id = %s", (imagem_id,), fetch=False)
 
     @staticmethod
+    def capas_por_ficha(campanha_id):
+        """{ficha_personagem_id: imagem_url} das criaturas com capa."""
+        result = Database.execute_query(
+            """
+            SELECT ficha_personagem_id, imagem_url FROM bestiario
+            WHERE id_campanha = %s AND ficha_personagem_id IS NOT NULL AND imagem_url IS NOT NULL
+            """,
+            (campanha_id,),
+        )
+        return {linha['ficha_personagem_id']: linha['imagem_url'] for linha in (result or [])}
+
+    @staticmethod
     def fichas_bloqueadas(campanha_id):
         """IDs das fichas de criaturas que os jogadores ainda não derrotaram."""
         result = Database.execute_query(

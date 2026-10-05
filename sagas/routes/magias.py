@@ -6,13 +6,13 @@
 from flask import Blueprint, request, redirect, url_for, flash, render_template
 
 from models import Magia, MagiaCatalogo, Personagem
-from utils.acesso import verificar_admin, verificar_login, pertence_a_campanha_ativa
+from utils.acesso import verificar_admin, verificar_login, pertence_a_campanha_ativa, exigir_login, exigir_admin
 
 bp = Blueprint('magias', __name__)
 
 
 def _voltar_para_ficha(personagem_id):
-    return redirect(url_for('ver_personagem', id=personagem_id) + '#magias')
+    return redirect(url_for('ficha.ver_personagem', id=personagem_id) + '#magias')
 
 
 def _dados_do_formulario():
@@ -54,7 +54,7 @@ def _magia_editavel(magia_id):
 @bp.route('/personagem/<int:personagem_id>/magias', methods=['POST'])
 def adicionar_magia(personagem_id):
     if not _personagem_editavel(personagem_id):
-        return redirect(url_for('index'))
+        return redirect(url_for('ficha.index'))
     dados = _dados_do_formulario()
     if not dados['nome']:
         flash('Nome da magia é obrigatório.', 'danger')
@@ -67,7 +67,7 @@ def adicionar_magia(personagem_id):
 @bp.route('/personagem/<int:personagem_id>/magias/catalogo', methods=['POST'])
 def adicionar_magia_do_catalogo(personagem_id):
     if not _personagem_editavel(personagem_id):
-        return redirect(url_for('index'))
+        return redirect(url_for('ficha.index'))
     modelo = MagiaCatalogo.buscar_por_id(request.form.get('catalogo_id', type=int) or 0)
     if not modelo:
         flash('Escolha uma magia do catálogo.', 'danger')
@@ -86,9 +86,8 @@ def adicionar_magia_do_catalogo(personagem_id):
 
 
 @bp.route('/magias/catalogo')
+@exigir_login
 def catalogo_magias():
-    if not verificar_login():
-        return redirect(url_for('login'))
     return render_template('magias_catalogo.html', magias=MagiaCatalogo.listar_todas())
 
 
@@ -96,7 +95,7 @@ def catalogo_magias():
 def editar_magia(magia_id):
     magia = _magia_editavel(magia_id)
     if not magia:
-        return redirect(url_for('index'))
+        return redirect(url_for('ficha.index'))
     dados = _dados_do_formulario()
     if not dados['nome']:
         flash('Nome da magia é obrigatório.', 'danger')
@@ -110,7 +109,7 @@ def editar_magia(magia_id):
 def remover_magia(magia_id):
     magia = _magia_editavel(magia_id)
     if not magia:
-        return redirect(url_for('index'))
+        return redirect(url_for('ficha.index'))
     Magia.deletar(magia_id)
     flash(f'{magia["nome"]} removida do grimório.', 'success')
     return _voltar_para_ficha(magia['personagem_id'])

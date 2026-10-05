@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% set editando = npc is defined and npc %}
+{% set tem_imagem = editando and npc.imagem_url and npc.imagem_url != '' and npc.imagem_url != 'None' %}
+
+{% block title %}{% if editando %}Editar {{ npc.nome }}{% else %}Novo NPC{% endif %} - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if editando %}Editar NPC: {{ npc.nome }}{% else %}Novo NPC{% endif %}</h1>
+
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data"
+              action="{% if editando %}{{ url_for('mundo.editar_npc', id=npc.id) }}{% else %}{{ url_for('mundo.novo_npc') }}{% endif %}">
+            <div class="form-group">
+                <label for="nome" class="form-label">Nome do NPC *</label>
+                <input type="text" id="nome" name="nome" class="form-control" required
+                       value="{{ npc.nome if editando else '' }}"
+                       placeholder="Ex: Gandalf, o Cinzento">
+            </div>
+
+            <div class="form-group">
+                <label for="status" class="form-label">Status</label>
+                <select id="status" name="status" class="form-control">
+                    {% for status in ['Vivo', 'Morto', 'Desaparecido', 'Inativo'] %}
+                    <option value="{{ status }}" {% if (editando and npc.status == status) or (not editando and status == 'Vivo') %}selected{% endif %}>{{ status }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="local_atual_id" class="form-label">Local Atual</label>
+                <select id="local_atual_id" name="local_atual_id" class="form-control">
+                    <option value="">Nenhum local</option>
+                    {% for local in locais %}
+                    <option value="{{ local.id }}" {% if editando and npc.local_atual_id == local.id %}selected{% endif %}>{{ local.nome }}</option>
+                    {% endfor %}
+                </select>
+                <small style="color: var(--cor-texto-claro);">Opcional: selecione onde este NPC está atualmente.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="ficha_personagem_id" class="form-label">Ficha GURPS</label>
+                <select id="ficha_personagem_id" name="ficha_personagem_id" class="form-control">
+                    <option value="">Nenhuma ficha</option>
+                    {% for personagem in personagens %}
+                    <option value="{{ personagem.id }}" {% if editando and npc.ficha_personagem_id == personagem.id %}selected{% endif %}>{{ personagem.nome }}</option>
+                    {% endfor %}
+                </select>
+                <small style="color: var(--cor-texto-claro);">Opcional: vincule a uma ficha de personagem GURPS existente.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao_breve" class="form-label">Descrição Breve</label>
+                <textarea id="descricao_breve" name="descricao_breve" class="form-control" rows="3"
+                          placeholder="Uma descrição curta visível para jogadores...">{{ npc.descricao_breve if editando else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao_completa" class="form-label">Descrição Completa</label>
+                <textarea id="descricao_completa" name="descricao_completa" class="form-control" rows="5"
+                          placeholder="Informações detalhadas apenas para o mestre...">{{ npc.descricao_completa if editando else '' }}</textarea>
+            </div>
+
+            {% if tem_imagem %}
+            <div class="form-group">
+                <label class="form-label">Imagem Atual</label>
+                <div style="margin: 1rem 0;">
+                    <img src="{{ npc.imagem_url }}" alt="{{ npc.nome }}"
+                         style="max-width: 300px; border-radius: 8px; border: 1px solid var(--cor-borda);">
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="arquivo" class="form-label">Imagem do NPC</label>
+                <input type="file" id="arquivo" name="arquivo" class="form-control"
+                       accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+                <small style="color: var(--cor-texto-claro);">
+                    {% if tem_imagem %}Deixe em branco para manter a imagem atual.{% endif %}
+                    Formatos aceitos: PNG, JPG, JPEG, GIF, WEBP. Tamanho máximo recomendado: 10MB.
+                </small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">{% if editando %}Salvar Alterações{% else %}Criar NPC{% endif %}</button>
+                {% if editando %}
+                <a href="{{ url_for('mundo.ver_npc', id=npc.id) }}" class="btn-secondary">Cancelar</a>
+                {% else %}
+                <a href="{{ url_for('mundo.listar_npcs') }}" class="btn-secondary">Cancelar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

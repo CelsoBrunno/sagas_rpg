@@ -1,0 +1,158 @@
+    <!-- Aba Inventário -->
+    <div id="tab-inventario" class="tab-content">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem;">
+                <h3 style="margin:0;">Inventário</h3>
+                <div id="inventario-dinheiro" style="text-align:right;">
+                    <span style="display:block; font-size:0.85rem; color:var(--cor-texto-claro);">Dinheiro disponível</span>
+                    <strong id="dinheiro-disponivel-valor">{{ '%.2f'|format(dinheiro_disponivel or 0) }}</strong>
+                </div>
+            </div>
+
+            <div id="inventario-resumo" style="margin-bottom: 1rem;">
+                <strong>Peso total:</strong> {{ '%.2f'|format(peso_total) }} |
+                <strong>Nível de carga:</strong> {{ nivel_carga }}
+            </div>
+
+            {% if inventario_efeitos %}
+            <div id="inventario-efeitos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+                <p style="margin:0 0 .75rem 0; font-weight:600;">Resumo de efeitos ativos</p>
+                <ul id="inventario-efeitos-resumo-lista" style="margin:0; padding-left:1.2rem;">
+                    {% if inventario_efeitos.resumo_textual %}
+                        {% for linha in inventario_efeitos.resumo_textual %}
+                        <li>{{ linha }}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Nenhum efeito adicional ativo.</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div id="inventario-danos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+                <p style="margin:0 0 .75rem 0; font-weight:600;">Danos por armas equipadas</p>
+                <ul id="inventario-danos-resumo-lista" style="margin:0; padding-left:1.2rem;">
+                    {% if inventario_efeitos.danos %}
+                        {% for dano in inventario_efeitos.danos %}
+                        <li>
+                            {{ dano.nome }}:
+                            {% if dano.dano_bal %}Bal {{ dano.dano_bal }}{% endif %}
+                            {% if dano.dano_bal and dano.dano_gdp %} | {% endif %}
+                            {% if dano.dano_gdp %}GdP {{ dano.dano_gdp }}{% endif %}
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Nenhuma arma equipada com modificadores de dano.</li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if session.get('role') == 'admin' %}
+            <form id="form-inventario" data-personagem-id="{{ personagem.id }}" style="margin-bottom: 1.5rem;">
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">Item</label>
+                            <input type="text" id="inv-nome" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group">
+                            <label class="form-label">Quantidade</label>
+                            <input type="number" id="inv-quantidade" class="form-control" min="1" value="1" required>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group">
+                            <label class="form-label">Peso (por unidade)</label>
+                            <input type="number" id="inv-peso" class="form-control" step="0.01" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group">
+                            <label class="form-label">Preço Unitário</label>
+                            <input type="number" id="inv-preco" class="form-control" step="0.01" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">Notas</label>
+                            <input type="text" id="inv-notas" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col" style="display: flex; align-items: flex-end;">
+                        <button type="submit" class="btn-primary">Adicionar</button>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+
+            <div style="margin-top: 1.5rem; margin-bottom: 1rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
+                <p style="color: var(--cor-texto-claro); font-size: 0.9rem; margin:0;">Aqui ficam apenas consumíveis e itens diversos.</p>
+                <button type="button" class="btn-primary js-abrir-catalogo-consumiveis" data-personagem-id="{{ personagem.id }}" style="margin-bottom: 0.5rem;">
+                    Comprar Consumível
+                </button>
+            </div>
+
+            <div id="inventario-tabela-wrapper" class="table-responsive {% if not inventario or inventario|length == 0 %}is-hidden{% endif %}">
+                <table class="table-gurps" style="font-size:0.85em;">
+                    <thead>
+                        <tr>
+                            <th style="min-width:120px; padding:0.5rem;">Item</th>
+                            <th style="min-width:100px; padding:0.5rem;">Categoria</th>
+                            <th style="width:60px; padding:0.5rem;">Qtd</th>
+                            <th style="width:70px; padding:0.5rem;">Peso</th>
+                            <th style="width:90px; padding:0.5rem;">Peso Total</th>
+                            <th style="width:100px; padding:0.5rem;">Preço Unit.</th>
+                            <th style="width:100px; padding:0.5rem;">Valor Total</th>
+                            <th style="width:120px; padding:0.5rem;">Usar</th>
+                            <th style="width:80px; padding:0.5rem;">Detalhes</th>
+                            {% if session.get('role') == 'admin' %}<th style="width:90px; padding:0.5rem;">Ações</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody id="inventario-lista" data-is-admin="{{ 1 if session.get('role') == 'admin' else 0 }}" data-pode-equipar="{{ 1 if pode_equipar else 0 }}">
+                        {% for item in inventario %}
+                        <tr style="font-size:0.9em;">
+                            <td style="font-weight:600; padding:0.5rem;">{{ item.nome_item }}</td>
+                            <td style="padding:0.5rem;">{{ item.categoria or '-' }}</td>
+                            <td style="text-align:center; padding:0.5rem;">{{ item.quantidade }}</td>
+                            <td style="text-align:right; padding:0.5rem;">{{ '%.2f'|format(item.peso or 0) }}</td>
+                            <td style="text-align:right; padding:0.5rem;">{{ '%.2f'|format((item.peso or 0) * (item.quantidade or 0)) }}</td>
+                            <td style="text-align:right; padding:0.5rem;">₣ {{ '%.2f'|format(item.preco_unitario or 0) }}</td>
+                            <td style="text-align:right; padding:0.5rem;">₣ {{ '%.2f'|format((item.preco_unitario or 0) * (item.quantidade or 0)) }}</td>
+                            <td style="padding:0.5rem;">
+                                <div style="display:flex; gap: .5rem; align-items:center;">
+                                    <input type="number" min="1" max="{{ item.quantidade }}" value="1" class="form-control" style="max-width: 70px; font-size:0.85em;" id="usar-{{ item.id }}">
+                                    <button class="btn-secondary btn-small js-consumir-item" data-item-id="{{ item.id }}" style="font-size:0.8em; padding:0.25rem 0.5rem;">Usar</button>
+                                </div>
+                            </td>
+                            <td style="text-align:center; padding:0.5rem;">
+                                {% if item.efeitos or item.notas %}
+                                    <button onclick="abrirModalDetalhesInventario({{ item.id }})" class="btn-secondary js-detalhes-inventario" data-item-id="{{ item.id }}" style="padding:0.25rem 0.5rem; font-size:0.75em; cursor:pointer; border:1px solid #ddd; background:#f8f9fa; color:#333; border-radius:4px;" title="Ver detalhes">
+                                        Detalhes
+                                    </button>
+                                {% else %}
+                                    <span style="color:#999; font-size:0.85em;">-</span>
+                                {% endif %}
+                            </td>
+                            {% if session.get('role') == 'admin' %}
+                            <td>
+                                <button class="btn-danger btn-small js-remover-item" data-item-id="{{ item.id }}">Remover</button>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="inventario-empty-state" class="card card-empty-inventario {% if inventario and inventario|length > 0 %}is-hidden{% endif %}">
+                <p style="color: var(--cor-texto-claro); margin: 0;">
+                    🎒 Nenhum item no inventário ainda.<br>
+                    Utilize o botão "💰 Comprar Item do Catálogo" ou, como mestre, adicione manualmente.
+                </p>
+            </div>
+
+            <p style="margin-top:0.75rem; font-size:0.95rem; color:var(--cor-texto-claro);">
+                Valor total do inventário: <strong id="valor-total-inventario">{{ '%.2f'|format(valor_total_inventario or 0) }}</strong>
+            </p>
+        </div>
+    </div>

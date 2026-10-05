@@ -51,7 +51,7 @@
   <div class="row">
     <div class="col">
       <button class="btn-primary" onclick="registrarSessao()">Registrar Sessão e Distribuir Pontos</button>
-      <a class="btn-secondary" href="{{ url_for('admin_sessoes_historico') }}" style="margin-left: .5rem;">Ver Histórico</a>
+      <a class="btn-secondary" href="{{ url_for('admin.admin_sessoes_historico') }}" style="margin-left: .5rem;">Ver Histórico</a>
     </div>
   </div>
 </div>
@@ -77,7 +77,7 @@ async function registrarSessao() {
   const data = await res.json();
   if (data.success) {
     alert('Sessão registrada com sucesso!');
-    window.location.href = '{{ url_for('admin_sessoes_historico') }}';
+    window.location.href = '{{ url_for('admin.admin_sessoes_historico') }}';
   } else {
     alert('Erro: ' + (data.message || 'Falha ao registrar sessão'));
   }

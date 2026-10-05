@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{% if local is defined and local %}Editar {{ local.nome }}{% else %}Novo Local{% endif %} - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if local is defined and local %}Editar Local: {{ local.nome }}{% else %}Novo Local{% endif %}</h1>
+
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data"
+              action="{% if local is defined and local %}{{ url_for('mundo.editar_local', id=local.id) }}{% else %}{{ url_for('mundo.novo_local') }}{% endif %}">
+            <div class="form-group">
+                <label for="nome" class="form-label">Nome do Local *</label>
+                <input type="text" id="nome" name="nome" class="form-control" required
+                       value="{{ local.nome if local is defined and local else '' }}"
+                       placeholder="Ex: Taverna do Dragão Dourado">
+            </div>
+
+            <div class="form-group">
+                <label for="tipo" class="form-label">Tipo</label>
+                <select id="tipo" name="tipo" class="form-control">
+                    <option value="">Selecione um tipo</option>
+                    {% for tipo in ['Cidade', 'Vila', 'Taverna', 'Masmorra', 'Floresta', 'Montanha', 'Deserto', 'Templo', 'Castelo', 'Outro'] %}
+                    <option value="{{ tipo }}" {% if local is defined and local and local.tipo == tipo %}selected{% endif %}>{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao_publica" class="form-label">Descrição Pública</label>
+                <textarea id="descricao_publica" name="descricao_publica" class="form-control" rows="5"
+                          placeholder="Descrição visível para todos os jogadores...">{{ local.descricao_publica if local is defined and local else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao_mestre" class="form-label">Notas do Mestre</label>
+                <textarea id="descricao_mestre" name="descricao_mestre" class="form-control" rows="5"
+                          placeholder="Informações privadas apenas para o mestre...">{{ local.descricao_mestre if local is defined and local else '' }}</textarea>
+            </div>
+
+            {% if local is defined and local and local.imagem_principal_url %}
+            <div class="form-group">
+                <label class="form-label">Imagem Atual</label>
+                <div style="margin: 1rem 0;">
+                    <img src="{{ local.imagem_principal_url }}" alt="{{ local.nome }}"
+                         style="max-width: 300px; border-radius: 8px; border: 1px solid var(--cor-borda);">
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="arquivo" class="form-label">Imagem do Local</label>
+                <input type="file" id="arquivo" name="arquivo" class="form-control"
+                       accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+                <small style="color: var(--cor-texto-claro);">
+                    {% if local is defined and local and local.imagem_principal_url %}
+                        Deixe em branco para manter a imagem atual.
+                    {% endif %}
+                    Padrão: 1280 × 720 px (16:9), JPG de até 400 KB. Fora dessa proporção, a imagem é cortada no centro.
+                </small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">{% if local is defined and local %}Salvar Alterações{% else %}Criar Local{% endif %}</button>
+                {% if local is defined and local %}
+                <a href="{{ url_for('mundo.ver_local', id=local.id) }}" class="btn-secondary">Cancelar</a>
+                {% else %}
+                <a href="{{ url_for('mundo.listar_locais') }}" class="btn-secondary">Cancelar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

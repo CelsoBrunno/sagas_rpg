@@ -53,6 +53,20 @@ class Imagem:
         return result[0] if result else None
     
     @staticmethod
+    def primeiras_por_entidades(entidade_tipo, entidade_ids):
+        """Imagem mais recente de cada entidade, numa consulta só: {entidade_id: path_url}"""
+        if not entidade_ids:
+            return {}
+        marcadores = ', '.join(['%s'] * len(entidade_ids))
+        query = f"""
+            SELECT entidade_id, path_url FROM imagens
+            WHERE entidade_tipo = %s AND entidade_id IN ({marcadores})
+            ORDER BY created_at, id
+        """
+        result = Database.execute_query(query, (entidade_tipo, *entidade_ids)) or []
+        return {linha['entidade_id']: linha['path_url'] for linha in result}
+
+    @staticmethod
     def buscar_todas_galeria(entidade_tipo, entidade_id):
         """Busca todas as imagens para galeria"""
         query = """

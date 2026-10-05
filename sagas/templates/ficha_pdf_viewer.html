@@ -28,7 +28,7 @@
     </style>
 </head>
 <body>
-    <iframe id="pdf-iframe" src="{{ url_for('ficha_premium_pdf', id=personagem.id) }}?teste={{ request.args.get('teste', 'false') }}&_={{ request.args.get('_', '') }}" type="application/pdf">
+    <iframe id="pdf-iframe" src="{{ url_for('ficha.ficha_premium_pdf', id=personagem.id) }}?teste={{ request.args.get('teste', 'false') }}&_={{ request.args.get('_', '') }}" type="application/pdf">
         <p>Seu navegador não suporta visualização de PDF.</p>
     </iframe>
     <script>

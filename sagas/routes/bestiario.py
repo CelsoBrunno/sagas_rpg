@@ -7,7 +7,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 
 from models import Bestiario, Personagem
-from utils.acesso import verificar_login, verificar_admin, exigir_campanha, pertence_a_campanha_ativa
+from utils.acesso import verificar_login, verificar_admin, exigir_campanha, pertence_a_campanha_ativa, exigir_login, exigir_admin
 from utils.uploads import salvar_imagem, remover_imagem
 
 bp = Blueprint('bestiario', __name__, url_prefix='/bestiario')
@@ -57,9 +57,8 @@ def _criatura_da_campanha(criatura_id):
 
 
 @bp.route('/')
+@exigir_login
 def listar_bestiario():
-    if not verificar_login():
-        return redirect(url_for('login'))
     campanha = exigir_campanha()
     criaturas = Bestiario.listar_por_campanha(campanha['id']) if campanha else []
     if not verificar_admin():
@@ -69,9 +68,8 @@ def listar_bestiario():
 
 
 @bp.route('/<int:id>')
+@exigir_login
 def ver_criatura(id):
-    if not verificar_login():
-        return redirect(url_for('login'))
     criatura = _criatura_da_campanha(id)
     e_mestre = verificar_admin()
     if not criatura or (criatura['nivel_revelacao'] == Bestiario.OCULTA and not e_mestre):
@@ -85,13 +83,11 @@ def ver_criatura(id):
 
 
 @bp.route('/nova', methods=['GET', 'POST'])
+@exigir_admin(mensagem='Apenas o mestre pode cadastrar criaturas.', destino='bestiario.listar_bestiario')
 def nova_criatura():
-    if not verificar_admin():
-        flash('Apenas o mestre pode cadastrar criaturas.', 'danger')
-        return redirect(url_for('bestiario.listar_bestiario'))
     campanha = exigir_campanha()
     if not campanha:
-        return redirect(url_for('listar_campanhas'))
+        return redirect(url_for('campanhas.listar_campanhas'))
 
     if request.method == 'POST':
         dados = _dados_do_formulario()
@@ -114,10 +110,8 @@ def nova_criatura():
 
 
 @bp.route('/<int:id>/editar', methods=['GET', 'POST'])
+@exigir_admin(mensagem='Apenas o mestre pode editar criaturas.', destino='bestiario.listar_bestiario')
 def editar_criatura(id):
-    if not verificar_admin():
-        flash('Apenas o mestre pode editar criaturas.', 'danger')
-        return redirect(url_for('bestiario.listar_bestiario'))
     criatura = _criatura_da_campanha(id)
     if not criatura:
         return redirect(url_for('bestiario.listar_bestiario'))
@@ -138,10 +132,8 @@ def editar_criatura(id):
 
 
 @bp.route('/<int:id>/imagens/<int:imagem_id>/remover', methods=['POST'])
+@exigir_admin(mensagem='Apenas o mestre pode remover imagens.', destino='bestiario.listar_bestiario')
 def remover_imagem_galeria(id, imagem_id):
-    if not verificar_admin():
-        flash('Apenas o mestre pode remover imagens.', 'danger')
-        return redirect(url_for('bestiario.listar_bestiario'))
     criatura = _criatura_da_campanha(id)
     imagem = Bestiario.buscar_imagem(imagem_id)
     if criatura and imagem and imagem['id_bestiario'] == id:
@@ -152,10 +144,8 @@ def remover_imagem_galeria(id, imagem_id):
 
 
 @bp.route('/<int:id>/revelacao', methods=['POST'])
+@exigir_admin(mensagem='Apenas o mestre pode revelar criaturas.', destino='bestiario.listar_bestiario')
 def definir_revelacao(id):
-    if not verificar_admin():
-        flash('Apenas o mestre pode revelar criaturas.', 'danger')
-        return redirect(url_for('bestiario.listar_bestiario'))
     criatura = _criatura_da_campanha(id)
     if criatura:
         nivel = Bestiario.nivel_valido(request.form.get('nivel'))
@@ -165,10 +155,8 @@ def definir_revelacao(id):
 
 
 @bp.route('/<int:id>/deletar', methods=['POST'])
+@exigir_admin(mensagem='Apenas o mestre pode remover criaturas.', destino='bestiario.listar_bestiario')
 def deletar_criatura(id):
-    if not verificar_admin():
-        flash('Apenas o mestre pode remover criaturas.', 'danger')
-        return redirect(url_for('bestiario.listar_bestiario'))
     criatura = _criatura_da_campanha(id)
     if criatura:
         galeria = Bestiario.listar_imagens(id)

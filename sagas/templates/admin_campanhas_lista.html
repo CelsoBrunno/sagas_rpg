@@ -6,7 +6,7 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h1>Gerenciar Campanhas</h1>
-        <a href="{{ url_for('admin_campanhas_novo') }}" class="btn-primary">+ Nova Campanha</a>
+        <a href="{{ url_for('admin.admin_campanhas_novo') }}" class="btn-primary">+ Nova Campanha</a>
     </div>
     
     <div class="table-responsive">
@@ -40,7 +40,7 @@
                     </td>
                     <td>{{ campanha.total_personagens or 0 }}</td>
                     <td>
-                        <a href="{{ url_for('admin_campanhas_editar', id=campanha.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                        <a href="{{ url_for('admin.admin_campanhas_editar', id=campanha.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
                     </td>
                 </tr>
                 {% endfor %}

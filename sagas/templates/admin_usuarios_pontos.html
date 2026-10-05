@@ -6,9 +6,9 @@
 <div class="container">
     <nav aria-label="breadcrumb" style="margin-bottom: 1rem;">
         <ol style="list-style: none; padding: 0; display: flex; gap: 0.5rem;">
-            <li><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+            <li><a href="{{ url_for('admin.admin_dashboard') }}">Admin</a></li>
             <li>></li>
-            <li><a href="{{ url_for('admin_usuarios_lista') }}">Usuários</a></li>
+            <li><a href="{{ url_for('admin.admin_usuarios_lista') }}">Usuários</a></li>
             <li>></li>
             <li>Gerenciar Pontos</li>
         </ol>
@@ -35,7 +35,7 @@
             <!-- Adicionar Pontos -->
             <div class="card" style="border: 2px solid #28a745;">
                 <h3 style="color: #28a745; margin-bottom: 1rem;">➕ Adicionar Pontos</h3>
-                <form method="POST" action="{{ url_for('admin_usuarios_pontos', id=usuario.id) }}">
+                <form method="POST" action="{{ url_for('admin.admin_usuarios_pontos', id=usuario.id) }}">
                     <input type="hidden" name="acao" value="adicionar">
                     <div class="form-group">
                         <label for="quantidade_adicionar" class="form-label">Quantidade</label>
@@ -52,7 +52,7 @@
             <!-- Remover Pontos -->
             <div class="card" style="border: 2px solid #dc3545;">
                 <h3 style="color: #dc3545; margin-bottom: 1rem;">➖ Remover Pontos</h3>
-                <form method="POST" action="{{ url_for('admin_usuarios_pontos', id=usuario.id) }}">
+                <form method="POST" action="{{ url_for('admin.admin_usuarios_pontos', id=usuario.id) }}">
                     <input type="hidden" name="acao" value="remover">
                     <div class="form-group">
                         <label for="quantidade_remover" class="form-label">Quantidade</label>
@@ -70,7 +70,7 @@
             <!-- Definir Pontos -->
             <div class="card" style="border: 2px solid var(--cor-primaria-azul);">
                 <h3 style="color: var(--cor-primaria-azul); margin-bottom: 1rem;">🎯 Definir Pontos</h3>
-                <form method="POST" action="{{ url_for('admin_usuarios_pontos', id=usuario.id) }}">
+                <form method="POST" action="{{ url_for('admin.admin_usuarios_pontos', id=usuario.id) }}">
                     <input type="hidden" name="acao" value="definir">
                     <div class="form-group">
                         <label for="quantidade_definir" class="form-label">Quantidade Exata</label>
@@ -87,7 +87,7 @@
         </div>
 
         <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--cor-borda);">
-            <a href="{{ url_for('admin_usuarios_lista') }}" class="btn-secondary">← Voltar para Lista de Usuários</a>
+            <a href="{{ url_for('admin.admin_usuarios_lista') }}" class="btn-secondary">← Voltar para Lista de Usuários</a>
         </div>
     </div>
 </div>

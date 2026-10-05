@@ -26,7 +26,7 @@
     <div class="card" style="margin-bottom: 2rem; background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1.5rem; text-align: center;">
         <p style="color: var(--cor-texto-claro); margin: 0;">
             📷 Este local ainda não possui uma imagem. 
-            <a href="{{ url_for('editar_local', id=local.id) }}" style="color: var(--cor-primaria-azul);">Clique aqui para adicionar uma imagem.</a>
+            <a href="{{ url_for('mundo.editar_local', id=local.id) }}" style="color: var(--cor-primaria-azul);">Clique aqui para adicionar uma imagem.</a>
         </p>
     </div>
     {% endif %}
@@ -60,7 +60,7 @@
                     <tr>
                         <td>
                             {% if npc.ficha_personagem_id %}
-                                <a href="{{ url_for('ver_personagem', id=npc.ficha_personagem_id) }}">
+                                <a href="{{ url_for('ficha.ver_personagem', id=npc.ficha_personagem_id) }}">
                                     {{ npc.nome }}
                                 </a>
                             {% else %}
@@ -98,7 +98,7 @@
                                 <strong>Tipo:</strong> {{ mapa.tipo_mapa }}
                             </p>
                         {% endif %}
-                        <a href="{{ url_for('ver_mapa', id=mapa.id) }}" class="btn-primary" style="width: 100%;">Ver Mapa</a>
+                        <a href="{{ url_for('mundo.ver_mapa', id=mapa.id) }}" class="btn-primary" style="width: 100%;">Ver Mapa</a>
                     </div>
                 </div>
             {% endfor %}
@@ -108,14 +108,14 @@
     
     <div style="margin-top: 2rem; display: flex; gap: 1rem;">
         {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('editar_local', id=local.id) }}" class="btn-primary">✏️ Editar Local</a>
-            <form method="POST" action="{{ url_for('deletar_local', id=local.id) }}" 
+            <a href="{{ url_for('mundo.editar_local', id=local.id) }}" class="btn-primary">✏️ Editar Local</a>
+            <form method="POST" action="{{ url_for('mundo.deletar_local', id=local.id) }}" 
                   onsubmit="return confirm('Tem certeza que deseja deletar este local? Esta ação não pode ser desfeita.');" 
                   style="display: inline;">
                 <button type="submit" class="btn-danger">🗑️ Deletar Local</button>
             </form>
         {% endif %}
-        <a href="{{ url_for('listar_locais') }}" class="btn-secondary">← Voltar para Lista de Locais</a>
+        <a href="{{ url_for('mundo.listar_locais') }}" class="btn-secondary">← Voltar para Lista de Locais</a>
     </div>
 </div>
 {% endblock %}

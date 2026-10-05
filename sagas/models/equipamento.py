@@ -33,34 +33,44 @@ class Equipamento:
         if slot not in Equipamento.SLOTS_VALIDOS:
             raise ValueError('Slot inválido')
 
-        Database.execute_query(
-            "DELETE FROM equipamentos_personagem WHERE inventario_id = %s",
-            (inventario_id,),
-            fetch=False
-        )
-
-        if slot != 'acessorio':
-            Database.execute_query(
-                "DELETE FROM equipamentos_personagem WHERE personagem_id = %s AND slot = %s",
-                (personagem_id, slot),
-                fetch=False
+        connection = None
+        cursor = None
+        try:
+            connection = Database.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(
+                "DELETE FROM equipamentos_personagem WHERE inventario_id = %s",
+                (inventario_id,),
             )
-
-        Database.execute_query(
-            """
-            INSERT INTO equipamentos_personagem (personagem_id, inventario_id, slot)
-            VALUES (%s, %s, %s)
-            """,
-            (personagem_id, inventario_id, slot),
-            fetch=False
-        )
+            if slot != 'acessorio':
+                cursor.execute(
+                    "DELETE FROM equipamentos_personagem WHERE personagem_id = %s AND slot = %s",
+                    (personagem_id, slot),
+                )
+            cursor.execute(
+                """
+                INSERT INTO equipamentos_personagem (personagem_id, inventario_id, slot)
+                VALUES (%s, %s, %s)
+                """,
+                (personagem_id, inventario_id, slot),
+            )
+            connection.commit()
+        except Exception:
+            if connection:
+                connection.rollback()
+            raise
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
 
     @staticmethod
     def desequipar(inventario_id: int) -> None:
         Database.execute_query(
             "DELETE FROM equipamentos_personagem WHERE inventario_id = %s",
             (inventario_id,),
-            fetch=False
+            fetch=False,
         )
 
     @staticmethod

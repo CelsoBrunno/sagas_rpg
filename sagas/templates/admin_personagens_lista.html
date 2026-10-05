@@ -7,16 +7,16 @@
     <h1>Gerenciar Personagens</h1>
     
     <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
-        <a href="{{ url_for('admin_personagens_lista', status='all') }}" 
+        <a href="{{ url_for('admin.admin_personagens_lista', status='all') }}" 
            class="btn-secondary {% if status_filter == 'all' %}active{% endif %}" 
            style="padding: 0.5rem 1rem;">Todos</a>
-        <a href="{{ url_for('admin_personagens_lista', status='pendente') }}" 
+        <a href="{{ url_for('admin.admin_personagens_lista', status='pendente') }}" 
            class="btn-secondary {% if status_filter == 'pendente' %}active{% endif %}" 
            style="padding: 0.5rem 1rem;">Pendentes</a>
-        <a href="{{ url_for('admin_personagens_lista', status='aprovado') }}" 
+        <a href="{{ url_for('admin.admin_personagens_lista', status='aprovado') }}" 
            class="btn-secondary {% if status_filter == 'aprovado' %}active{% endif %}" 
            style="padding: 0.5rem 1rem;">Aprovados</a>
-        <a href="{{ url_for('admin_personagens_lista', status='rejeitado') }}" 
+        <a href="{{ url_for('admin.admin_personagens_lista', status='rejeitado') }}" 
            class="btn-secondary {% if status_filter == 'rejeitado' %}active{% endif %}" 
            style="padding: 0.5rem 1rem;">Rejeitados</a>
     </div>
@@ -53,7 +53,7 @@
                     </td>
                     <td>{{ personagem.tipo or 'PJ' }}</td>
                     <td>
-                        <a href="{{ url_for('ver_personagem', id=personagem.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver</a>
+                        <a href="{{ url_for('ficha.ver_personagem', id=personagem.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver</a>
                         {% if personagem.status_criacao == 'Pendente' %}
                             <button onclick="aprovarPersonagem({{ personagem.id }})" class="btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Aprovar</button>
                             <button onclick="rejeitarPersonagem({{ personagem.id }})" class="btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Rejeitar</button>

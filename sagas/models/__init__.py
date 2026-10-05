@@ -11,7 +11,10 @@ Importações recomendadas:
 """
 
 # Models de Personagens
-from .personagem import Personagem, Atributos, VantagemDesvantagem, Pericia
+from .personagem import Personagem
+from .atributos import Atributos
+from .vantagem import VantagemDesvantagem
+from .pericia import Pericia
 
 # Models de Sistema
 from .campanha import Campanha

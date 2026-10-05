@@ -10,7 +10,7 @@
   {% if session.get('role') == 'admin' %}
   <div class="card">
     <h3>Configurações da Campanha</h3>
-    <form method="POST" action="{{ url_for('ver_campanha', id=campanha.id) }}">
+    <form method="POST" action="{{ url_for('campanhas.ver_campanha', id=campanha.id) }}">
       <div class="row">
         <div class="col-2">
           <div class="form-group">
@@ -43,7 +43,7 @@
 
   <div class="card">
     <h3>Convidar Jogador</h3>
-    <form method="POST" action="{{ url_for('ver_campanha', id=campanha.id) }}">
+    <form method="POST" action="{{ url_for('campanhas.ver_campanha', id=campanha.id) }}">
       <div class="row">
         <div class="col-2">
           <div class="form-group">
@@ -78,7 +78,7 @@
             <td>{{ p.status_criacao }}</td>
             <td>{{ p.pontos_gastos or 0 }} / {{ campanha.pontos_iniciais }}</td>
             <td>
-              <a class="btn-primary btn-small" href="{{ url_for('ver_personagem', id=p.id) }}">Abrir</a>
+              <a class="btn-primary btn-small" href="{{ url_for('ficha.ver_personagem', id=p.id) }}">Abrir</a>
             </td>
           </tr>
           {% endfor %}
@@ -88,7 +88,7 @@
   </div>
 
   <div style="margin-top: 1.5rem;">
-    <a href="{{ url_for('listar_campanhas') }}" class="btn-secondary">← Voltar</a>
+    <a href="{{ url_for('campanhas.listar_campanhas') }}" class="btn-secondary">← Voltar</a>
   </div>
 </div>
 {% endblock %}

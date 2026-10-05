@@ -7,7 +7,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h1>Locais da Campanha</h1>
         {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('novo_local') }}" class="btn-primary">+ Novo Local</a>
+            <a href="{{ url_for('mundo.novo_local') }}" class="btn-primary">+ Novo Local</a>
         {% endif %}
     </div>
     
@@ -30,7 +30,7 @@
                             {% endif %}
                             
                             <div style="margin-top: 1.5rem;">
-                                <a href="{{ url_for('ver_local', id=local.id) }}" class="btn-primary" style="width: 100%;">Ver Detalhes</a>
+                                <a href="{{ url_for('mundo.ver_local', id=local.id) }}" class="btn-primary" style="width: 100%;">Ver Detalhes</a>
                             </div>
                         </div>
                     </div>
@@ -40,7 +40,7 @@
     {% elif sem_campanha %}
         <div class="card">
             <p>Escolha uma campanha para ver os locais dela.</p>
-            <a href="{{ url_for('listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
+            <a href="{{ url_for('campanhas.listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
         </div>
     {% else %}
         <div class="card">

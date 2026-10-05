@@ -1,0 +1,54 @@
+/* ==========================================
+   Lista de personagens da campanha (página inicial)
+   ========================================== */
+
+.lista-topo {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.lista-topo .form-control {
+  flex: 1;
+  max-width: 420px;
+}
+
+.lista-topo .btn-primary {
+  margin-left: auto;
+}
+
+.lista-personagens th,
+.lista-personagens td {
+  padding: 0.4rem 0.75rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.lista-personagens td:first-child {
+  width: 1%;
+}
+
+.lista-nome {
+  color: inherit;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.lista-nome:hover {
+  text-decoration: underline;
+}
+
+.lista-acoes {
+  width: 1%;
+  text-align: right;
+}
+
+.lista-acoes .btn-small + .btn-small {
+  margin-left: 0.4rem;
+}
+
+.lista-vazia {
+  margin-top: 1rem;
+  color: var(--cor-texto-claro);
+}

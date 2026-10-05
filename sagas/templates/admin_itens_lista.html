@@ -6,7 +6,7 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h1>Catálogo de Itens</h1>
-        <a href="{{ url_for('admin_itens_novo') }}" class="btn-primary">+ Novo Item</a>
+        <a href="{{ url_for('admin.admin_itens_novo') }}" class="btn-primary">+ Novo Item</a>
     </div>
 
     <div class="table-responsive">
@@ -54,7 +54,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{{ url_for('admin_itens_editar', id=item.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                        <a href="{{ url_for('admin.admin_itens_editar', id=item.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
                         <button onclick="deletarItem({{ item.id }})" class="btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Deletar</button>
                     </td>
                 </tr>

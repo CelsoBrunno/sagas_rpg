@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% set de_raca = racas is defined %}
+{% set itens = racas if de_raca else classes %}
+{% set rotulo = 'Raça' if de_raca else 'Classe' %}
+{% set plural = 'Raças' if de_raca else 'Classes' %}
+{% set plural_lower = 'raças' if de_raca else 'classes' %}
+{% set item_lower = 'raça' if de_raca else 'classe' %}
+{% set endpoint_novo = 'admin.admin_racas_novo' if de_raca else 'admin.admin_classes_novo' %}
+{% set endpoint_editar = 'admin.admin_racas_editar' if de_raca else 'admin.admin_classes_editar' %}
+{% set prefixo = '/admin/racas' if de_raca else '/admin/classes' %}
+
+{% block title %}Gerenciar {{ plural }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>{{ plural }}</h1>
+        <a href="{{ url_for(endpoint_novo) }}" class="btn-primary">+ Nova {{ rotulo }}</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" style="margin-bottom: 1.5rem;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if sem_campanha %}
+        <div class="card">
+            <p>Escolha uma campanha para ver as {{ plural_lower }} dela.</p>
+            <a href="{{ url_for('campanhas.listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
+        </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table-gurps">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Bônus ST</th>
+                    <th>Bônus DX</th>
+                    <th>Bônus IQ</th>
+                    <th>Bônus HT</th>
+                    <th>PV Extra</th>
+                    <th>PF Extra</th>
+                    <th>Custo</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in itens %}
+                <tr>
+                    <td><strong>{{ item.nome }}</strong></td>
+                    <td>{{ item.bonus_st or 0 }}</td>
+                    <td>{{ item.bonus_dx or 0 }}</td>
+                    <td>{{ item.bonus_iq or 0 }}</td>
+                    <td>{{ item.bonus_ht or 0 }}</td>
+                    <td>{{ item.bonus_pv_extra or 0 }}</td>
+                    <td>{{ item.bonus_pf_extra or 0 }}</td>
+                    <td>{{ item.custo_em_pontos or 0 }} pts</td>
+                    <td>
+                        {% if item.is_active %}
+                            <span style="color: var(--cor-primaria-azul);">Ativa</span>
+                        {% else %}
+                            <span style="color: var(--cor-texto-claro);">Inativa</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for(endpoint_editar, id=item.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                        <button onclick="deletarBonus({{ item.id }})" class="btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Deletar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function deletarBonus(id) {
+    if (!confirm('Tem certeza que deseja deletar esta {{ item_lower }}? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+    fetch(`{{ prefixo }}/${id}/deletar`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    }).then(() => {
+        location.reload();
+    });
+}
+</script>
+{% endblock %}

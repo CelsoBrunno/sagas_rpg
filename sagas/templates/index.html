@@ -2,61 +2,106 @@
 
 {% block title %}Personagens - GURPS Sagas{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/retratos.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/lista-personagens.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container">
-    <h1>Personagens da Campanha</h1>
-    
-    {% if session.get('role') == 'admin' %}
-        <div style="margin-bottom: 2rem;">
-            <a href="{{ url_for('novo_personagem') }}" class="btn-primary">+ Novo Personagem</a>
-        </div>
-    {% endif %}
+    <h1>{% if session.get('role') == 'admin' %}Personagens da Campanha{% else %}Minhas fichas{% endif %}</h1>
 
     {% if personagens %}
-        <div class="row">
-            {% for personagem in personagens %}
-                <div class="col-2">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>{{ personagem.nome }}</h3>
-                            {% set jogador_display = personagem.usuario_nome_completo or personagem.usuario_username or personagem.jogador_nome %}
-                            <p style="color: var(--cor-texto-claro); margin: 0;">
-                                <strong>Jogador:</strong> {{ jogador_display or 'NPC' }}<br>
-                                <strong>Raça:</strong> {{ personagem.raca or 'Não definida' }}
-                            </p>
-                        </div>
-                        <div class="card-body">
-                            <p><strong>Pontos Base:</strong> {{ personagem.pontos_base }}</p>
-                            <p><strong>Status:</strong> 
+        <div class="lista-topo">
+            <input type="search" id="busca-personagem" class="form-control"
+                   placeholder="Buscar por nome, jogador ou raça..." autocomplete="off">
+            {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('ficha.novo_personagem') }}" class="btn-primary">+ Novo Personagem</a>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table-gurps lista-personagens">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Nome</th>
+                        <th>Jogador</th>
+                        <th>Raça</th>
+                        <th>Tipo</th>
+                        <th>Pontos</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for personagem in personagens %}
+                        {% set retrato = retratos.get(personagem.id) %}
+                        {% set link_ficha = url_for('ficha.ver_personagem', id=personagem.id) %}
+                        {% set jogador_display = personagem.usuario_nome_completo or personagem.usuario_username or personagem.jogador_nome %}
+                        <tr data-busca="{{ [personagem.nome, jogador_display, personagem.raca]|select|join(' ')|lower }}">
+                            <td>
+                                <a href="{{ link_ficha }}" class="retrato retrato-linha">
+                                    {% if retrato %}
+                                        <img src="{{ retrato }}" alt="{{ personagem.nome }}">
+                                    {% else %}
+                                        <span>{{ personagem.nome[:1] }}</span>
+                                    {% endif %}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{{ link_ficha }}" class="lista-nome">{{ personagem.nome }}</a>
+                                {% if personagem.acesso_ate %}
+                                <small style="display:block; color: var(--cor-texto-claro);">até {{ personagem.acesso_ate.strftime('%d/%m %H:%M') }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ jogador_display or 'NPC' }}</td>
+                            <td>{{ personagem.raca or '-' }}</td>
+                            <td>{{ personagem.tipo }}</td>
+                            <td>{{ personagem.pontos_base }}</td>
+                            <td>
                                 <span class="badge badge-{% if personagem.status == 'Ativo' %}success{% elif personagem.status == 'Inativo' %}secondary{% else %}danger{% endif %}">
                                     {{ personagem.status }}
                                 </span>
-                            </p>
-                            <p><strong>Tipo:</strong> {{ personagem.tipo }}</p>
-                            
-                            <div style="margin-top: 1.5rem;">
-                                <a href="{{ url_for('ver_personagem', id=personagem.id) }}" class="btn-primary" style="width: 100%;">Ver Ficha Completa</a>
+                            </td>
+                            <td class="lista-acoes">
+                                <a href="{{ link_ficha }}" class="btn-primary btn-small">Ver ficha</a>
                                 {% if session.get('role') == 'admin' %}
-                                    <button onclick="deletarPersonagem({{ personagem.id }})" class="btn-danger btn-small" style="width: 100%; margin-top: 0.5rem;">Excluir</button>
+                                    <button onclick="deletarPersonagem({{ personagem.id }})" class="btn-danger btn-small" title="Excluir" aria-label="Excluir">🗑️</button>
                                 {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        <p id="busca-vazia" class="lista-vazia" hidden>Nenhuma ficha encontrada.</p>
+
+        <script>
+        document.getElementById('busca-personagem').addEventListener('input', function () {
+            const termo = this.value.trim().toLowerCase();
+            let visiveis = 0;
+            document.querySelectorAll('.lista-personagens tbody tr').forEach(function (linha) {
+                const mostra = linha.dataset.busca.includes(termo);
+                linha.hidden = !mostra;
+                if (mostra) visiveis++;
+            });
+            document.getElementById('busca-vazia').hidden = visiveis > 0;
+        });
+        </script>
     {% elif sem_campanha %}
         <div class="card">
             <p>Escolha uma campanha para ver os personagens dela.</p>
-            <a href="{{ url_for('listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
+            <a href="{{ url_for('campanhas.listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
         </div>
     {% else %}
         <div class="card">
-            <p>Nenhum personagem criado ainda nesta campanha.</p>
             {% if session.get('role') == 'admin' %}
-                <a href="{{ url_for('novo_personagem') }}" class="btn-primary">Criar Primeiro Personagem</a>
+                <p>Nenhum personagem criado ainda nesta campanha.</p>
+                <a href="{{ url_for('ficha.novo_personagem') }}" class="btn-primary">Criar Primeiro Personagem</a>
             {% else %}
-                <p style="color: var(--cor-texto-claro);">Entre como administrador para criar personagens.</p>
+                <p>Nenhuma ficha foi atribuída a você nesta campanha.</p>
+                <a href="{{ url_for('ficha.criar_minha_ficha') }}" class="btn-primary">Criar minha ficha</a>
             {% endif %}
         </div>
     {% endif %}

@@ -21,29 +21,7 @@ class ItemCatalogo:
             FROM itens_catalogo
             ORDER BY nome
         """
-        try:
-            return Database.execute_query(query)
-        except Exception:
-            try:
-                fallback = """
-                    SELECT id, nome, categoria, preco, peso, descricao, tipo_item,
-                           COALESCE(dano_bal_mod, 0) AS dano_bal_mod,
-                           dano_bal_tipo,
-                           COALESCE(dano_gdp_mod, 0) AS dano_gdp_mod,
-                           dano_gdp_tipo,
-                           COALESCE(rd_mod, 0) AS rd_mod,
-                           rd_tipo
-                    FROM itens_catalogo
-                    ORDER BY nome
-                """
-                return Database.execute_query(fallback)
-            except Exception:
-                fallback2 = """
-                    SELECT id, nome, categoria, preco, peso, descricao, tipo_item
-                    FROM itens_catalogo
-                    ORDER BY nome
-                """
-                return Database.execute_query(fallback2)
+        return Database.execute_query(query)
 
     @staticmethod
     def buscar_por_id(item_id: int):
@@ -98,28 +76,7 @@ class ItemCatalogo:
             dano_bal_mod, dano_bal_tipo, dano_gdp_mod, dano_gdp_tipo,
             rd_mod, rd_tipo
         )
-        try:
-            Database.execute_query(
-                query,
-                params,
-                fetch=False
-            )
-        except Exception:
-            fallback_query = """
-                INSERT INTO itens_catalogo (nome, categoria, preco, peso, descricao, tipo_item)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE
-                    categoria = VALUES(categoria),
-                    preco = VALUES(preco),
-                    peso = VALUES(peso),
-                    descricao = VALUES(descricao),
-                    tipo_item = VALUES(tipo_item)
-            """
-            Database.execute_query(
-                fallback_query,
-                (nome, categoria, preco, peso, descricao, tipo_item),
-                fetch=False
-            )
+        Database.execute_query(query, params, fetch=False)
 
     @staticmethod
     def criar(

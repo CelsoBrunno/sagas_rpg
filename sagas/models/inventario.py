@@ -32,51 +32,24 @@ class Inventario:
         dano_bal_tipo = dano_bal_tipo or None
         dano_gdp_tipo = dano_gdp_tipo or None
         rd_tipo = rd_tipo or None
-        # Tenta inserir com quantidade_em_uso=0 e rd_mod/rd_tipo; se a coluna não existir, insere sem ela
-        try:
-            query = (
-                """
-                INSERT INTO inventario (
-                    personagem_id, nome_item, quantidade, peso, preco_unitario, notas,
-                    quantidade_em_uso, tipo_item,
-                    dano_bal_mod, dano_bal_tipo, dano_gdp_mod, dano_gdp_tipo,
-                    rd_mod, rd_tipo
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """
-            )
-            params = (
+        query = (
+            """
+            INSERT INTO inventario (
                 personagem_id, nome_item, quantidade, peso, preco_unitario, notas,
-                0, tipo_item,
+                quantidade_em_uso, tipo_item,
                 dano_bal_mod, dano_bal_tipo, dano_gdp_mod, dano_gdp_tipo,
                 rd_mod, rd_tipo
             )
-            return Database.execute_query(query, params, fetch=False)
-        except Exception:
-            try:
-                query = (
-                    """
-                    INSERT INTO inventario (
-                        personagem_id, nome_item, quantidade, peso, preco_unitario, notas, tipo_item,
-                        dano_bal_mod, dano_bal_tipo, dano_gdp_mod, dano_gdp_tipo
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    """
-                )
-                params = (
-                    personagem_id, nome_item, quantidade, peso, preco_unitario, notas, tipo_item,
-                    dano_bal_mod, dano_bal_tipo, dano_gdp_mod, dano_gdp_tipo
-                )
-                return Database.execute_query(query, params, fetch=False)
-            except Exception:
-                query = (
-                    """
-                    INSERT INTO inventario (personagem_id, nome_item, quantidade, peso, preco_unitario, notas, tipo_item)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """
-                )
-                params = (personagem_id, nome_item, quantidade, peso, preco_unitario, notas, tipo_item)
-                return Database.execute_query(query, params, fetch=False)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+        )
+        params = (
+            personagem_id, nome_item, quantidade, peso, preco_unitario, notas,
+            0, tipo_item,
+            dano_bal_mod, dano_bal_tipo, dano_gdp_mod, dano_gdp_tipo,
+            rd_mod, rd_tipo
+        )
+        return Database.execute_query(query, params, fetch=False)
 
     @staticmethod
     def listar_por_personagem(personagem_id: int):
@@ -104,32 +77,7 @@ class Inventario:
             ORDER BY i.nome_item
             """
         )
-        try:
-            return Database.execute_query(query, (personagem_id,))
-        except Exception:
-            fallback = (
-                """
-                SELECT i.id,
-                       i.personagem_id,
-                       i.nome_item,
-                       i.quantidade,
-                       i.peso,
-                       i.notas,
-                       COALESCE(i.quantidade_em_uso, 0) AS quantidade_em_uso,
-                       COALESCE(i.preco_unitario, 0) AS preco_unitario,
-                       i.tipo_item,
-                       COALESCE(i.dano_bal_mod, 0) AS dano_bal_mod,
-                       i.dano_bal_tipo,
-                       COALESCE(i.dano_gdp_mod, 0) AS dano_gdp_mod,
-                       i.dano_gdp_tipo,
-                       ep.slot AS slot_equipado
-                FROM inventario i
-                LEFT JOIN equipamentos_personagem ep ON ep.inventario_id = i.id
-                WHERE i.personagem_id = %s
-                ORDER BY i.nome_item
-                """
-            )
-            return Database.execute_query(fallback, (personagem_id,))
+        return Database.execute_query(query, (personagem_id,))
 
     @staticmethod
     def buscar_por_id(item_id: int):
@@ -154,25 +102,7 @@ class Inventario:
             WHERE i.id = %s
             """
         )
-        try:
-            resultado = Database.execute_query(query, (item_id,))
-        except Exception:
-            fallback = (
-                """
-                SELECT i.id,
-                       i.personagem_id,
-                       i.nome_item,
-                       i.quantidade,
-                       i.peso,
-                       i.notas,
-                       COALESCE(i.quantidade_em_uso, 0) AS quantidade_em_uso,
-                       COALESCE(i.preco_unitario, 0) AS preco_unitario,
-                       i.tipo_item
-                FROM inventario i
-                WHERE i.id = %s
-                """
-            )
-            resultado = Database.execute_query(fallback, (item_id,))
+        resultado = Database.execute_query(query, (item_id,))
         return resultado[0] if resultado else None
 
     @staticmethod
@@ -202,19 +132,14 @@ class Inventario:
 
     @staticmethod
     def atualizar_em_uso(item_id: int, quantidade_em_uso: int) -> None:
-        # Atualiza quantidade_em_uso se a coluna existir; caso contrário, ignora silenciosamente
-        try:
-            query = (
-                """
-                UPDATE inventario
-                SET quantidade_em_uso = %s
-                WHERE id = %s
-                """
-            )
-            Database.execute_query(query, (quantidade_em_uso, item_id), fetch=False)
-        except Exception:
-            # Coluna pode não existir em bancos antigos
-            pass
+        query = (
+            """
+            UPDATE inventario
+            SET quantidade_em_uso = %s
+            WHERE id = %s
+            """
+        )
+        Database.execute_query(query, (quantidade_em_uso, item_id), fetch=False)
 
     @staticmethod
     def consumir(item_id: int, quantidade: int = 1) -> None:

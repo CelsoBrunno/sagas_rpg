@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% set editando = mapa is defined and mapa %}
+
+{% block title %}{% if editando %}Editar {{ mapa.nome_mapa }}{% else %}Novo Mapa{% endif %} - GURPS Sagas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if editando %}Editar Mapa: {{ mapa.nome_mapa }}{% else %}Novo Mapa{% endif %}</h1>
+
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data"
+              action="{% if editando %}{{ url_for('mundo.editar_mapa', id=mapa.id) }}{% else %}{{ url_for('mundo.novo_mapa') }}{% endif %}">
+            <div class="form-group">
+                <label for="nome_mapa" class="form-label">Nome do Mapa *</label>
+                <input type="text" id="nome_mapa" name="nome_mapa" class="form-control" required
+                       value="{{ mapa.nome_mapa if editando else '' }}"
+                       placeholder="Ex: Mapa da Cidade de Waterdeep">
+            </div>
+
+            <div class="form-group">
+                <label for="tipo_mapa" class="form-label">Tipo de Mapa</label>
+                <select id="tipo_mapa" name="tipo_mapa" class="form-control">
+                    <option value="">Selecione um tipo</option>
+                    {% for tipo in ['Regional', 'Cidade', 'Masmorra', 'Local', 'Batalha', 'Outro'] %}
+                    <option value="{{ tipo }}" {% if editando and mapa.tipo_mapa == tipo %}selected{% endif %}>{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="local_associado_id" class="form-label">Local Associado</label>
+                <select id="local_associado_id" name="local_associado_id" class="form-control">
+                    <option value="">Nenhum local (mapa regional)</option>
+                    {% for local in locais %}
+                    <option value="{{ local.id }}" {% if editando and mapa.local_associado_id == local.id %}selected{% endif %}>{{ local.nome }}</option>
+                    {% endfor %}
+                </select>
+                <small style="color: var(--cor-texto-claro);">Opcional: associe este mapa a um local específico.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao" class="form-label">Descrição</label>
+                <textarea id="descricao" name="descricao" class="form-control" rows="4"
+                          placeholder="Descrição do mapa...">{{ mapa.descricao if editando else '' }}</textarea>
+            </div>
+
+            {% if editando and mapa.url_imagem %}
+            <div class="form-group">
+                <label class="form-label">Imagem Atual</label>
+                <div style="margin: 1rem 0;">
+                    <img src="{{ mapa.url_imagem }}" alt="{{ mapa.nome_mapa }}"
+                         style="max-width: 300px; border-radius: 8px; border: 1px solid var(--cor-borda);">
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="arquivo" class="form-label">Upload de Imagem{% if not editando %} *{% endif %}</label>
+                <input type="file" id="arquivo" name="arquivo" class="form-control" {% if not editando %}required{% endif %}
+                       accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+                <small style="color: var(--cor-texto-claro);">
+                    {% if editando and mapa.url_imagem %}Deixe em branco para manter a imagem atual.{% endif %}
+                    Formatos aceitos: PNG, JPG, JPEG, GIF, WEBP. Tamanho máximo recomendado: 10MB.
+                </small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">{% if editando %}Salvar Alterações{% else %}Criar Mapa{% endif %}</button>
+                {% if editando %}
+                <a href="{{ url_for('mundo.ver_mapa', id=mapa.id) }}" class="btn-secondary">Cancelar</a>
+                {% else %}
+                <a href="{{ url_for('mundo.listar_mapas') }}" class="btn-secondary">Cancelar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

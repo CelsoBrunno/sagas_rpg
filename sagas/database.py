@@ -2,7 +2,6 @@
 # Sistema de Campanha GURPS - Database
 # ==========================================
 
-from flask import g
 import mysql.connector
 from mysql.connector import pooling
 from config import Config

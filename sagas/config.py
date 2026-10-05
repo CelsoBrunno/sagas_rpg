@@ -11,8 +11,13 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
 class Config:
     """Configurações principais da aplicação"""
     
-    # Configurações do Flask
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    # Configurações do Flask.
+    # Sem SECRET_KEY no ambiente, a chave fraca só existe com DEBUG=true.
+    # O app web recusa subir no outro caso (veja app.py).
+    DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or (
+        'dev-secret-key-change-in-production' if DEBUG else ''
+    )
     
     # Credenciais ficam no .env. Não grave senha neste arquivo.
     MYSQL_HOST = os.environ.get('MYSQL_HOST') or 'localhost'
@@ -20,9 +25,6 @@ class Config:
     MYSQL_USER = os.environ.get('MYSQL_USER') or 'root'
     MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD') or ''
     MYSQL_DB = os.environ.get('MYSQL_DB') or 'sagas_gurps'
-    
-    # Configurações gerais
-    DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
     
     # Configurações de cálculo GURPS 
     MULTIPLICADOR_VELOCIDADE_BASICA = 4  # (DX + HT) / 4

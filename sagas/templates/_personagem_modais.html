@@ -1,0 +1,85 @@
+    <!-- Modal Catálogo de Perícias -->
+    <div id="modal-catalogo-pericias" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1100; overflow-y:auto;">
+        <div style="background:white; margin:2rem auto; max-width:900px; padding:2rem; border-radius:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3>Catálogo de Perícias</h3>
+                <button onclick="fecharCatalogoPericias()" style="background:#dc3545; color:white; border:none; padding:0.5rem 1rem; border-radius:4px; cursor:pointer;">Fechar</button>
+            </div>
+
+            <div style="margin-bottom:1rem;">
+                <input type="text" id="busca-pericia" placeholder="Buscar por nome..." onkeyup="filtrarCatalogoPericias()" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
+            </div>
+
+            <div style="margin-bottom:1rem;">
+                <button onclick="filtrarTipoPericia('')" class="btn-secondary" style="margin-right:0.5rem;">Todas</button>
+                <button onclick="filtrarTipoPericia('F')" class="btn-secondary" style="margin-right:0.5rem;">Fácil</button>
+                <button onclick="filtrarTipoPericia('M')" class="btn-secondary" style="margin-right:0.5rem;">Média</button>
+                <button onclick="filtrarTipoPericia('D')" class="btn-secondary" style="margin-right:0.5rem;">Difícil</button>
+                <button onclick="filtrarTipoPericia('VD')" class="btn-secondary">Muito Difícil</button>
+            </div>
+
+            <div id="lista-catalogo-pericias" style="max-height:500px; overflow-y:auto;">
+                <p style="text-align:center; padding:2rem; color:#666;">⏳ Carregando catálogo...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-catalogo-itens" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1100; overflow-y:auto;">
+        <div style="background:white; margin:2rem auto; max-width:1000px; padding:1.5rem; border-radius:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3>Catálogo de Itens</h3>
+                <button onclick="fecharCatalogoItens()" style="background:#dc3545; color:white; border:none; padding:0.5rem 1rem; border-radius:4px; cursor:pointer;">Fechar</button>
+            </div>
+
+            <div style="margin-bottom:1rem;">
+                <input type="text" id="busca-item" placeholder="Buscar por nome..." onkeyup="filtrarCatalogoItens()" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
+            </div>
+
+            <div id="lista-catalogo-itens" style="max-height:500px; overflow:auto;">
+                <p style="text-align:center; padding:2rem; color:#666;">⏳ Carregando catálogo...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Item (Catálogo) -->
+    <div id="modal-detalhes-item" onclick="if(event.target.id === 'modal-detalhes-item') fecharModalDetalhesItem();" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1200; align-items:center; justify-content:center; padding:1.5rem;">
+        <div style="background:white; max-width:600px; width:100%; padding:2rem; border-radius:8px; position:relative; max-height:80vh; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <button onclick="fecharModalDetalhesItem()" style="position:absolute; top:1rem; right:1rem; background:#dc3545; color:white; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.3rem; line-height:1; font-weight:bold; display:flex; align-items:center; justify-content:center;">×</button>
+            <div id="modal-detalhes-item-content">
+                <!-- Conteúdo será preenchido dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Equipamento -->
+    <div id="modal-detalhes-equipamento" onclick="if(event.target.id === 'modal-detalhes-equipamento') fecharModalDetalhesEquipamento();" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1200; align-items:center; justify-content:center; padding:1.5rem;">
+        <div style="background:white; max-width:600px; width:100%; padding:2rem; border-radius:8px; position:relative; max-height:80vh; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <button onclick="fecharModalDetalhesEquipamento()" style="position:absolute; top:1rem; right:1rem; background:#dc3545; color:white; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.3rem; line-height:1; font-weight:bold; display:flex; align-items:center; justify-content:center;">×</button>
+            <div id="modal-detalhes-equipamento-content">
+                <!-- Conteúdo será preenchido dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Inventário -->
+    <div id="modal-detalhes-inventario" onclick="if(event.target.id === 'modal-detalhes-inventario') fecharModalDetalhesInventario();" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1200; align-items:center; justify-content:center; padding:1.5rem;">
+        <div style="background:white; max-width:600px; width:100%; padding:2rem; border-radius:8px; position:relative; max-height:80vh; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <button onclick="fecharModalDetalhesInventario()" style="position:absolute; top:1rem; right:1rem; background:#dc3545; color:white; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.3rem; line-height:1; font-weight:bold; display:flex; align-items:center; justify-content:center;">×</button>
+            <div id="modal-detalhes-inventario-content">
+                <!-- Conteúdo será preenchido dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-evoluir-pericia" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1050; align-items:center; justify-content:center; padding:1.5rem;">
+        <div class="card" style="max-width:520px; width:100%; border-radius:12px; padding:1.5rem; position:relative;">
+            <button type="button" onclick="fecharModalEvoluirPericia()" style="position:absolute; top:0.75rem; right:0.75rem; background:none; border:none; font-size:1.25rem;">×</button>
+            <h3 style="margin-bottom:1rem;">Evoluir Perícia</h3>
+            <div id="modal-evoluir-conteudo"></div>
+            <div id="modal-evoluir-alerta" class="mensagem-suporte" style="display:none; margin-top:1rem; color:#dc3545;"></div>
+            <div style="display:flex; gap:0.75rem; margin-top:1.5rem; justify-content:flex-end;">
+                <button type="button" class="btn-secondary" onclick="fecharModalEvoluirPericia()">Cancelar</button>
+                <button type="button" id="btn-confirmar-evolucao" class="btn-primary" onclick="confirmarEvolucaoPericia()">Confirmar Gastos</button>
+            </div>
+        </div>
+    </div>

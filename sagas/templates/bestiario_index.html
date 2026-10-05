@@ -57,7 +57,7 @@
     {% elif sem_campanha %}
         <div class="card">
             <p>Escolha uma campanha para ver o bestiário dela.</p>
-            <a href="{{ url_for('listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
+            <a href="{{ url_for('campanhas.listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
         </div>
     {% else %}
         <div class="card">

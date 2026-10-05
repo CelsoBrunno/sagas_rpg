@@ -7,7 +7,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h1>NPCs da Campanha</h1>
         {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('novo_npc') }}" class="btn-primary">+ Novo NPC</a>
+            <a href="{{ url_for('mundo.novo_npc') }}" class="btn-primary">+ Novo NPC</a>
         {% endif %}
     </div>
     
@@ -34,7 +34,7 @@
                         </td>
                         <td>
                             {% if npc.local_nome %}
-                                <a href="{{ url_for('ver_local', id=npc.local_atual_id) }}" class="btn-secondary btn-small">
+                                <a href="{{ url_for('mundo.ver_local', id=npc.local_atual_id) }}" class="btn-secondary btn-small">
                                     {{ npc.local_nome }}
                                 </a>
                             {% else %}
@@ -43,7 +43,7 @@
                         </td>
                         <td>
                             {% if npc.ficha_personagem_id %}
-                                <a href="{{ url_for('ver_personagem', id=npc.ficha_personagem_id) }}" class="btn-success btn-small">
+                                <a href="{{ url_for('ficha.ver_personagem', id=npc.ficha_personagem_id) }}" class="btn-success btn-small">
                                     Ver Ficha
                                 </a>
                             {% else %}
@@ -51,7 +51,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for('ver_npc', id=npc.id) }}" class="btn-primary btn-small">Ver</a>
+                            <a href="{{ url_for('mundo.ver_npc', id=npc.id) }}" class="btn-primary btn-small">Ver</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -61,7 +61,7 @@
     {% elif sem_campanha %}
         <div class="card">
             <p>Escolha uma campanha para ver os NPCs dela.</p>
-            <a href="{{ url_for('listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
+            <a href="{{ url_for('campanhas.listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
         </div>
     {% else %}
         <div class="card">

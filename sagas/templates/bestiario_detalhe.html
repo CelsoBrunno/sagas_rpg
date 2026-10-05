@@ -70,7 +70,7 @@
 
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
                 {% if criatura.ficha_personagem_id and (derrotada or e_mestre) %}
-                    <a href="{{ url_for('ver_personagem', id=criatura.ficha_personagem_id) }}" class="btn-primary">Ver ficha GURPS</a>
+                    <a href="{{ url_for('ficha.ver_personagem', id=criatura.ficha_personagem_id) }}" class="btn-primary">Ver ficha GURPS</a>
                 {% endif %}
                 {% if e_mestre %}
                     <a href="{{ url_for('bestiario.editar_criatura', id=criatura.id) }}" class="btn-secondary">Editar</a>

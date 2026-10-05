@@ -6,7 +6,7 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h1>Catálogo de Vantagens/Desvantagens</h1>
-        <a href="{{ url_for('admin_vantagens_novo') }}" class="btn-primary">+ Nova Vantagem/Desvantagem</a>
+        <a href="{{ url_for('admin.admin_vantagens_novo') }}" class="btn-primary">+ Nova Vantagem/Desvantagem</a>
     </div>
 
     <div class="table-responsive">
@@ -39,7 +39,7 @@
                     <td>{{ vantagem.categoria or '-' }}</td>
                     <td>{{ (vantagem.descricao or '')[:50] }}{% if vantagem.descricao and vantagem.descricao|length > 50 %}...{% endif %}</td>
                     <td>
-                        <a href="{{ url_for('admin_vantagens_editar', id=vantagem.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                        <a href="{{ url_for('admin.admin_vantagens_editar', id=vantagem.id) }}" class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
                         <button onclick="deletarVantagem({{ vantagem.id }})" class="btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Deletar</button>
                     </td>
                 </tr>

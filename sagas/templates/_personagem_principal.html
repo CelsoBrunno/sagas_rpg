@@ -1,0 +1,186 @@
+    <!-- Aba Principal -->
+    <div id="tab-principal" class="tab-content active">
+        <div class="card">
+            <h3>Atributos Básicos</h3>
+            {% if atributos %}
+                <div class="stat-row">
+                    <div class="atributo-display" style="position: relative;">
+                        <div>ST</div>
+                        <div id="stat-ST" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">{{ atributos.ST }}</div>
+                        <div class="controles-upar" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
+                            <button class="btn-secondary btn-small" onclick="alterarAtributo('ST', -1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">-</button>
+                            <button class="btn-secondary btn-small" onclick="alterarAtributo('ST', 1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">+</button>
+                        </div>
+                    </div>
+                    <div class="atributo-display" style="position: relative;">
+                        <div>DX</div>
+                        <div id="stat-DX" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">{{ atributos.DX }}</div>
+                        <div class="controles-upar" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
+                            <button class="btn-secondary btn-small" onclick="alterarAtributo('DX', -1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">-</button>
+                            <button class="btn-secondary btn-small" onclick="alterarAtributo('DX', 1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">+</button>
+                        </div>
+                    </div>
+                    <div class="atributo-display" style="position: relative;">
+                        <div>IQ</div>
+                        <div id="stat-IQ" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">{{ atributos.IQ }}</div>
+                        <div class="controles-upar" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
+                            <button class="btn-secondary btn-small" onclick="alterarAtributo('IQ', -1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">-</button>
+                            <button class="btn-secondary btn-small" onclick="alterarAtributo('IQ', 1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">+</button>
+                        </div>
+                    </div>
+                    <div class="atributo-display" style="position: relative;">
+                        <div>HT</div>
+                        <div id="stat-HT" style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">{{ atributos.HT }}</div>
+                        <div class="controles-upar" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
+                            <button class="btn-secondary btn-small" onclick="alterarAtributo('HT', -1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">-</button>
+                            <button class="btn-secondary btn-small" onclick="alterarAtributo('HT', 1)" style="padding: 0.25rem 0.5rem; min-width: 35px;">+</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row controles-upar" style="margin-top: 1rem;">
+                    <div class="col">
+                        <div id="card-controle-atributos" class="card card-atributos-controle">
+                            <button id="btn-confirmar-atributos" class="btn-primary" onclick="confirmarMudancasAtributos()" disabled>
+                                ✅ Confirmar Mudanças
+                            </button>
+                            <button id="btn-cancelar-atributos" class="btn-secondary" onclick="cancelarMudancasAtributos()" disabled>
+                                ↩️ Cancelar
+                            </button>
+                            <div id="atributos-alerta" class="mensagem-suporte" role="alert" style="display:none; color: rgb(13, 110, 253);"></div>
+                            <div id="atributos-erro-detalhe" class="mensagem-suporte" style="display:none; color:#dc3545;"></div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if atributos_derivados %}
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <h3>PV / PF / Per / VT</h3>
+                    <div class="stat-row">
+                        <div class="atributo-derivado">
+                            <div>PV</div>
+                            <div id="derivado-PV">{{ atributos_derivados.PV }}</div>
+                            {% if atributos %}
+                            <small style="display: block; margin-top: 5px; font-size: 0.85em; color: #000000;">
+                                Base: {{ atributos.ST }} 
+                                {% if atributos.PV_extra %}+ {{ atributos.PV_extra }} extra{% endif %}
+                                (Max: {{ atributos.ST * 2 }})
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="atributo-derivado">
+                            <div>PF</div>
+                            <div id="derivado-PF">{{ atributos_derivados.PF }}</div>
+                            {% if atributos %}
+                            <small style="display: block; margin-top: 5px; font-size: 0.85em; color: #000000;">
+                                Base: {{ atributos.HT }} 
+                                {% if atributos.PF_extra %}+ {{ atributos.PF_extra }} extra{% endif %}
+                                (Max: {{ atributos.IQ * 2 }})
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="atributo-derivado">
+                            <div>Per</div>
+                            <div id="derivado-Per">{{ atributos_derivados.percepcao }}</div>
+                            {% if atributos %}
+                            <small style="display: block; margin-top: 5px; font-size: 0.85em; color: #000000;">
+                                Base: {{ atributos.IQ }} 
+                                {% if atributos.percepcao_extra %}{% if atributos.percepcao_extra > 0 %}+{% endif %} {{ atributos.percepcao_extra }}{% endif %}
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="atributo-derivado">
+                            <div>VT</div>
+                            <div id="derivado-VT">{{ atributos_derivados.vontade }}</div>
+                            {% if atributos %}
+                            <small style="display: block; margin-top: 5px; font-size: 0.85em; color: #000000;">
+                                Base: {{ atributos.IQ }} 
+                                {% if atributos.vontade_extra %}{% if atributos.vontade_extra > 0 %}+{% endif %} {{ atributos.vontade_extra }}{% endif %}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="card">
+                    <h3>Dados</h3>
+                    {% set bonus_inventario = inventario_efeitos.bonus if inventario_efeitos and inventario_efeitos.bonus else {} %}
+                    {% set dano_em_uso = inventario_efeitos.dano_em_uso if inventario_efeitos and inventario_efeitos.dano_em_uso else {} %}
+                    {% set ns = namespace(nomes=[]) %}
+                    {% if dano_em_uso.gdp_item and dano_em_uso.gdp_item not in ns.nomes %}
+                        {% set ns.nomes = ns.nomes + [dano_em_uso.gdp_item] %}
+                    {% endif %}
+                    {% if dano_em_uso.bal_item and dano_em_uso.bal_item not in ns.nomes %}
+                        {% set ns.nomes = ns.nomes + [dano_em_uso.bal_item] %}
+                    {% endif %}
+                    <table class="tabela-dados-basicos">
+                        <thead>
+                            <tr>
+                                <th>Base</th>
+                                <th>Adicional{% if ns.nomes %} ({{ ns.nomes | join(', ') }}){% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>GPD:</strong> {{ atributos_derivados.gpd or '-' }}</td>
+                                <td>
+                                    {% set gdp_mod = dano_em_uso.gdp_mod %}
+                                    {% if gdp_mod is not none %}
+                                        {{ '+' if gdp_mod > 0 else '' }}{{ gdp_mod }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>BAL:</strong> {{ atributos_derivados.bal or '-' }}</td>
+                                <td>
+                                    {% set bal_mod = dano_em_uso.bal_mod %}
+                                    {% if bal_mod is not none %}
+                                        {{ '+' if bal_mod > 0 else '' }}{{ bal_mod }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Vs / Deslocamento / Esquiva / Aparar / Bloqueio</h3>
+            <div class="stat-row">
+                <div class="atributo-derivado"><div>Vs</div><div id="derivado-Velocidade">{{ atributos_derivados.velocidade_basica }}</div></div>
+                <div class="atributo-derivado"><div>Deslocamento</div><div>{{ atributos_derivados.deslocamento }}</div></div>
+                <div class="atributo-derivado"><div>Esquiva</div><div id="derivado-Esquiva">{{ atributos_derivados.esquiva }}</div></div>
+                <div class="atributo-derivado"><div>Aparar</div><div>{{ atributos_derivados.aparar }}</div></div>
+                <div class="atributo-derivado"><div>Bloqueio</div><div>{{ atributos_derivados.bloqueio }}</div></div>
+                <div class="atributo-derivado">
+                    <div>RD</div>
+                    {% set dr_bonus = inventario_efeitos.bonus.dr if inventario_efeitos and inventario_efeitos.bonus else 0 %}
+                    <div>{{ atributos_derivados.dr_total }}</div>
+                    <small style="display:block; margin-top:4px; font-size:0.85em; color:#f1f1f1;">
+                        Base: {{ atributos_derivados.dr_base or 0 }}{% if dr_bonus %} + {{ dr_bonus }}{% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="stat-row">
+                <div class="atributo-derivado"><div>Peso Máximo</div><div id="derivado-PM">{{ atributos_derivados.PM }}</div></div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if personagem.biografia %}
+        <div class="card">
+            <h3>Biografia</h3>
+            <p>{{ personagem.biografia }}</p>
+        </div>
+        {% endif %}
+    </div>

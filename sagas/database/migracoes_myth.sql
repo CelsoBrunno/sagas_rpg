@@ -101,3 +101,17 @@ CREATE TABLE IF NOT EXISTS magias_catalogo (
     descricao TEXT,
     UNIQUE KEY uniq_magia_nome (nome)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. Acesso temporário a uma ficha, sem trocar o dono
+CREATE TABLE IF NOT EXISTS acessos_temporarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_personagem INT NOT NULL,
+    id_usuario INT NOT NULL,
+    expira_em DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_acesso_personagem_usuario (id_personagem, id_usuario),
+    CONSTRAINT fk_acesso_temp_personagem FOREIGN KEY (id_personagem)
+        REFERENCES personagens(id) ON DELETE CASCADE,
+    CONSTRAINT fk_acesso_temp_usuario FOREIGN KEY (id_usuario)
+        REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -3,6 +3,9 @@
 # ==========================================
 
 import hashlib
+
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from database import Database
 
 class Usuario:
@@ -43,15 +46,34 @@ class Usuario:
         return result[0] if result else None
     
     @staticmethod
+    def senha_legado(hashed_password):
+        """Hash MD5 antigo: 32 caracteres hexadecimais."""
+        if not hashed_password or len(hashed_password) != 32:
+            return False
+        return all(c in '0123456789abcdef' for c in hashed_password.lower())
+
+    @staticmethod
     def verificar_senha(hashed_password, senha_plain):
-        """Verifica se a senha está correta"""
-        senha_hash = Usuario.hash_password(senha_plain)
-        return hashed_password == senha_hash
-    
+        """Aceita o hash novo e o MD5 antigo, para não derrubar logins já gravados."""
+        if not hashed_password or senha_plain is None:
+            return False
+        if Usuario.senha_legado(hashed_password):
+            return hashlib.md5(senha_plain.encode()).hexdigest() == hashed_password
+        try:
+            return check_password_hash(hashed_password, senha_plain)
+        except (TypeError, ValueError):
+            return False
+
     @staticmethod
     def hash_password(senha_plain):
-        """Gera hash MD5 da senha (simplificado para demonstração)"""
-        return hashlib.md5(senha_plain.encode()).hexdigest()
+        """Hash com sal. pbkdf2 cabe em hashed_password VARCHAR(255)."""
+        return generate_password_hash(senha_plain, method='pbkdf2:sha256')
+
+    @staticmethod
+    def definir_senha(user_id, senha_plain):
+        """Grava um hash novo. Usado no cadastro e para trocar MD5 no login."""
+        query = "UPDATE usuarios SET hashed_password = %s WHERE id = %s"
+        Database.execute_query(query, (Usuario.hash_password(senha_plain), user_id), fetch=False)
     
     @staticmethod
     def atualizar_last_login(user_id):

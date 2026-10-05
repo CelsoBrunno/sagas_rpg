@@ -1,0 +1,26 @@
+    <!-- Aba Histórico -->
+    <div id="tab-historico" class="tab-content">
+        <div class="card">
+            <h3>Histórico de Evolução</h3>
+            <div id="inventario-tabela-wrapper" class="table-responsive">
+                <table class="table-gurps">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Sessão</th>
+                            <th>Pontos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in historico_pontos %}
+                        <tr>
+                            <td>{{ h.data_sessao.strftime('%d/%m/%Y') if h.data_sessao else '' }}</td>
+                            <td>{{ h.descricao or '-' }}</td>
+                            <td><strong>+{{ h.pontos_ganhos }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>

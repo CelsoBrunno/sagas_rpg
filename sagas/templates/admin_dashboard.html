@@ -10,50 +10,50 @@
         <div class="card" style="background: var(--cor-primaria-azul); color: white; padding: 1.5rem; border-radius: 8px;">
             <h3>Personagens</h3>
             <p style="font-size: 2rem; margin: 0.5rem 0;">{{ total_personagens }}</p>
-            <a href="{{ url_for('admin_personagens_lista') }}" style="color: white; text-decoration: underline;">Ver todos</a>
+            <a href="{{ url_for('admin.admin_personagens_lista') }}" style="color: white; text-decoration: underline;">Ver todos</a>
         </div>
         
         <div class="card" style="background: #ffc107; color: #333; padding: 1.5rem; border-radius: 8px;">
             <h3>Pendentes</h3>
             <p style="font-size: 2rem; margin: 0.5rem 0;">{{ personagens_pendentes }}</p>
-            <a href="{{ url_for('admin_personagens_lista', status='pendente') }}" style="color: #333; text-decoration: underline;">Aprovar</a>
+            <a href="{{ url_for('admin.admin_personagens_lista', status='pendente') }}" style="color: #333; text-decoration: underline;">Aprovar</a>
         </div>
         
         <div class="card" style="background: #28a745; color: white; padding: 1.5rem; border-radius: 8px;">
             <h3>Usuários</h3>
             <p style="font-size: 2rem; margin: 0.5rem 0;">{{ total_usuarios }}</p>
-            <a href="{{ url_for('admin_usuarios_lista') }}" style="color: white; text-decoration: underline;">Gerenciar</a>
+            <a href="{{ url_for('admin.admin_usuarios_lista') }}" style="color: white; text-decoration: underline;">Gerenciar</a>
         </div>
         
         <div class="card" style="background: #ffc107; color: #333; padding: 1.5rem; border-radius: 8px;">
             <h3>💰 Pontos</h3>
             <p style="font-size: 1.2rem; margin: 0.5rem 0;">Gerenciar Pontos</p>
-            <a href="{{ url_for('admin_usuarios_lista') }}" style="color: #333; text-decoration: underline; font-weight: bold;">Conceder Pontos</a>
+            <a href="{{ url_for('admin.admin_usuarios_lista') }}" style="color: #333; text-decoration: underline; font-weight: bold;">Conceder Pontos</a>
         </div>
         
         <div class="card" style="background: #17a2b8; color: white; padding: 1.5rem; border-radius: 8px;">
             <h3>Campanhas</h3>
             <p style="font-size: 2rem; margin: 0.5rem 0;">{{ total_campanhas }}</p>
-            <a href="{{ url_for('admin_campanhas_lista') }}" style="color: white; text-decoration: underline;">Gerenciar</a>
+            <a href="{{ url_for('admin.admin_campanhas_lista') }}" style="color: white; text-decoration: underline;">Gerenciar</a>
         </div>
     </div>
     
     <div style="margin-top: 3rem;">
         <h2>Catálogos</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-            <a href="{{ url_for('admin_itens_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
+            <a href="{{ url_for('admin.admin_itens_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
                 Itens ({{ total_itens }})
             </a>
-            <a href="{{ url_for('admin_pericias_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
+            <a href="{{ url_for('admin.admin_pericias_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
                 Perícias ({{ total_pericias }})
             </a>
-            <a href="{{ url_for('admin_vantagens_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
+            <a href="{{ url_for('admin.admin_vantagens_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
                 Vantagens ({{ total_vantagens }})
             </a>
-            <a href="{{ url_for('admin_racas_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
+            <a href="{{ url_for('admin.admin_racas_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
                 Raças
             </a>
-            <a href="{{ url_for('admin_classes_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
+            <a href="{{ url_for('admin.admin_classes_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
                 Classes
             </a>
         </div>

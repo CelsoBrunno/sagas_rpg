@@ -1,0 +1,75 @@
+    <!-- Aba Vantagens e Desvantagens -->
+    <div id="tab-vantagens" class="tab-content">
+        <div class="card">
+            <h3>Vantagens e Desvantagens</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <button type="button" class="btn-primary js-abrir-catalogo-vd" data-personagem-id="{{ personagem.id }}" style="margin-bottom: 0.5rem;">
+                    📚 Adicionar do Catálogo
+                </button>
+                <p style="color: var(--cor-texto-claro); font-size: 0.9rem; margin-top: 0.5rem;">
+                    Selecione vantagens e desvantagens do catálogo pré-cadastrado.
+                </p>
+            </div>
+            
+            <!-- Modal do Catálogo -->
+            <div id="modal-catalogo-vd" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+                <div style="background: white; margin: 2rem auto; max-width: 900px; padding: 2rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3>Catálogo de Vantagens e Desvantagens</h3>
+                        <button onclick="fecharCatalogoVD()" style="background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Fechar</button>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <input type="text" id="busca-vd" placeholder="Buscar por nome..." onkeyup="filtrarCatalogoVD()" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <button onclick="filtrarTipoVD('')" class="btn-secondary" style="margin-right: 0.5rem;">Todas</button>
+                        <button onclick="filtrarTipoVD('Vantagem')" class="btn-secondary" style="margin-right: 0.5rem;">Vantagens</button>
+                        <button onclick="filtrarTipoVD('Desvantagem')" class="btn-secondary">Desvantagens</button>
+                    </div>
+                    
+                    <div id="lista-catalogo-vd" style="max-height: 500px; overflow-y: auto;">
+                        <p style="text-align: center; padding: 2rem; color: #666;">⏳ Carregando catálogo...</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if vantagens and vantagens|length > 0 %}
+            <div class="table-responsive">
+                <table class="table-gurps">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Custo em Pontos</th>
+                            <th>Notas</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vantagens-lista">
+                        {% for vantagem in vantagens %}
+                        <tr>
+                            <td><strong>{{ vantagem.nome_item }}</strong></td>
+                            <td class="{% if vantagem.custo_em_pontos < 0 %}texto-desvantagem{% else %}texto-vantagem{% endif %}">
+                                {{ vantagem.custo_em_pontos }} pts
+                            </td>
+                            <td>{{ vantagem.notas or '-' }}</td>
+                            <td>
+                                <button class="btn-danger btn-small js-remover-vantagem" data-vantagem-id="{{ vantagem.id }}">Remover</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div id="inventario-empty-state" class="card" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1.5rem; text-align: center;">
+                <p style="color: var(--cor-texto-claro); margin: 0;">
+                    📋 Nenhuma vantagem ou desvantagem cadastrada ainda.<br>
+                    Clique em "📚 Adicionar do Catálogo" para começar.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
