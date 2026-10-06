@@ -55,7 +55,9 @@ class Magia:
 class MagiaCatalogo:
     @staticmethod
     def listar_todas():
-        return Database.execute_query("SELECT * FROM magias_catalogo ORDER BY escola, nome") or []
+        return Database.execute_query(
+            "SELECT * FROM magias_catalogo WHERE origem = 'manual' ORDER BY escola, nome"
+        ) or []
 
     @staticmethod
     def buscar_por_id(magia_id):

@@ -28,12 +28,38 @@ class Bestiario:
 
     @staticmethod
     def listar_por_campanha(campanha_id):
-        query = """
+        query = f"""
             SELECT * FROM bestiario
             WHERE id_campanha = %s
+            {Bestiario._condicao_adicionada('bestiario')}
             ORDER BY nivel_revelacao DESC, nome
         """
         return Database.execute_query(query, (campanha_id,))
+
+    @staticmethod
+    def _condicao_adicionada(alias):
+        """Criatura do acervo só entra na campanha se estiver marcada."""
+        return f"""
+            AND (
+                NOT EXISTS (SELECT 1 FROM acervo_criaturas a WHERE a.nome = {alias}.nome)
+                OR EXISTS (
+                    SELECT 1 FROM acervo_criaturas a
+                    INNER JOIN campanha_criatura cc
+                        ON cc.id_acervo = a.id AND cc.id_campanha = {alias}.id_campanha
+                    WHERE a.nome = {alias}.nome
+                )
+            )
+        """
+
+    @staticmethod
+    def adicionada(criatura):
+        if not criatura:
+            return False
+        consulta = Database.execute_query(
+            f"SELECT id FROM bestiario WHERE id = %s {Bestiario._condicao_adicionada('bestiario')}",
+            (criatura['id'],),
+        )
+        return bool(consulta)
 
     @staticmethod
     def buscar_por_id(criatura_id):
@@ -112,6 +138,7 @@ class Bestiario:
             """
             SELECT ficha_personagem_id, imagem_url FROM bestiario
             WHERE id_campanha = %s AND ficha_personagem_id IS NOT NULL AND imagem_url IS NOT NULL
+        """ + Bestiario._condicao_adicionada('bestiario') + """
             """,
             (campanha_id,),
         )
@@ -124,6 +151,7 @@ class Bestiario:
             """
             SELECT ficha_personagem_id FROM bestiario
             WHERE id_campanha = %s AND nivel_revelacao < %s AND ficha_personagem_id IS NOT NULL
+        """ + Bestiario._condicao_adicionada('bestiario') + """
             """,
             (campanha_id, Bestiario.DERROTADA),
         )

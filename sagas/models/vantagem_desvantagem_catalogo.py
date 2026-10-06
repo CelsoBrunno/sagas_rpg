@@ -12,6 +12,7 @@ class VantagemDesvantagemCatalogo:
         query = """
             SELECT id, nome, tipo, custo_base, custo_texto, descricao, categoria
             FROM vantagens_desvantagens_catalogo
+            WHERE origem = 'manual'
             ORDER BY tipo DESC, nome
         """
         return Database.execute_query(query)
@@ -22,7 +23,7 @@ class VantagemDesvantagemCatalogo:
         query = """
             SELECT id, nome, tipo, custo_base, custo_texto, descricao, categoria
             FROM vantagens_desvantagens_catalogo
-            WHERE tipo = 'Vantagem'
+            WHERE tipo = 'Vantagem' AND origem = 'manual'
             ORDER BY nome
         """
         return Database.execute_query(query)
@@ -33,7 +34,7 @@ class VantagemDesvantagemCatalogo:
         query = """
             SELECT id, nome, tipo, custo_base, custo_texto, descricao, categoria
             FROM vantagens_desvantagens_catalogo
-            WHERE tipo = 'Desvantagem'
+            WHERE tipo = 'Desvantagem' AND origem = 'manual'
             ORDER BY nome
         """
         return Database.execute_query(query)

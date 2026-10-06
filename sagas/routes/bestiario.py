@@ -50,7 +50,7 @@ def _salvar_galeria(criatura_id):
 
 def _criatura_da_campanha(criatura_id):
     criatura = Bestiario.buscar_por_id(criatura_id)
-    if not criatura or not pertence_a_campanha_ativa(criatura):
+    if not criatura or not pertence_a_campanha_ativa(criatura) or not Bestiario.adicionada(criatura):
         flash('Criatura não encontrada nesta campanha.', 'danger')
         return None
     return criatura

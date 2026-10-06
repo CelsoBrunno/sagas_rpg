@@ -4,7 +4,7 @@ from flask import flash, jsonify, make_response, redirect, render_template, requ
 import os
 from database import Database
 from config import Config
-from models import Atributos, Bestiario, Classe, Magia, MagiaCatalogo, Pericia, PericiaCatalogo, Personagem, Raca, SessaoLog, Usuario, VantagemDesvantagem, VantagemDesvantagemCatalogo
+from models import Acervo, Atributos, Bestiario, Classe, Magia, Pericia, PericiaCatalogo, Personagem, Raca, SessaoLog, Usuario, VantagemDesvantagem, VantagemDesvantagemCatalogo
 from routes.ficha import bp
 from routes.retratos import remover_retratos, retrato_do_personagem, retratos_da_campanha
 from models.acesso_temporario import AcessoTemporario
@@ -164,7 +164,7 @@ def ver_personagem(id):
                          historico_pontos=historico_pontos,
                          magias=Magia.listar_por_personagem(id),
                          escolas_magia=Magia.ESCOLAS,
-                         catalogo_magias=MagiaCatalogo.listar_todas() if verificar_admin() else [],
+                         catalogo_magias=Acervo.listar_disponiveis('magias', personagem.get('id_campanha')) if verificar_admin() else [],
                          usuarios=Usuario.listar_todos() if verificar_admin() else [],
                          acessos_temporarios=AcessoTemporario.listar_ativos(id) if verificar_admin() else [],
                          acesso_ate=acesso_ate)
@@ -533,7 +533,10 @@ def criar_minha_ficha():
             from models import VantagemDesvantagemCatalogo
             for vantagem_id in vantagens_automaticas_ids:
                 try:
-                    vantagem_catalogo = VantagemDesvantagemCatalogo.buscar_por_id(vantagem_id)
+                    vantagem_catalogo = (
+                        Acervo.registro_efetivo('vantagens', campanha['id'], vantagem_id)
+                        or VantagemDesvantagemCatalogo.buscar_por_id(vantagem_id)
+                    )
                     if vantagem_catalogo:
                         VantagemDesvantagem.criar(
                             personagem_id,
@@ -548,7 +551,10 @@ def criar_minha_ficha():
             from models import PericiaCatalogo
             for pericia_id in pericias_automaticas_ids:
                 try:
-                    pericia_catalogo = PericiaCatalogo.buscar_por_id(pericia_id)
+                    pericia_catalogo = (
+                        Acervo.registro_efetivo('pericias', campanha['id'], pericia_id)
+                        or PericiaCatalogo.buscar_por_id(pericia_id)
+                    )
                     if pericia_catalogo:
                         Pericia.criar(
                             personagem_id,

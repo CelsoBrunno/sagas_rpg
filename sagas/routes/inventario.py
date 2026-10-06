@@ -2,11 +2,11 @@
 
 from flask import jsonify, request
 from decimal import Decimal
-from models import Atributos, Equipamento, Inventario, ItemCatalogo, Pericia, PericiaCatalogo, Personagem, VantagemDesvantagemCatalogo
+from models import Acervo, Atributos, Equipamento, Inventario, Pericia, Personagem
 from flask import Blueprint
 
 bp = Blueprint('inventario', __name__)
-from utils.acesso import pode_gerenciar_personagem, verificar_admin, verificar_login
+from utils.acesso import campanha_da_sessao, pode_gerenciar_personagem, verificar_admin, verificar_login
 from utils.carga import _processar_inventario_personagem
 
 @bp.route('/api/calcular-pontos', methods=['POST'])
@@ -31,10 +31,14 @@ def calcular_pontos():
 # APIs - Catálogo de Perícias
 # ==========================================
 
+def _campanha_id():
+    campanha = campanha_da_sessao()
+    return campanha['id'] if campanha else None
+
+
 @bp.route('/api/pericias/catalogo')
 def listar_pericias_catalogo():
-    itens = PericiaCatalogo.listar_todas()
-    return jsonify(itens)
+    return jsonify(Acervo.listar_disponiveis('pericias', _campanha_id()))
 
 # ==========================================
 # APIs - Catálogo de Vantagens e Desvantagens
@@ -44,15 +48,9 @@ def listar_pericias_catalogo():
 def listar_vantagens_desvantagens_catalogo():
     """Retorna lista de vantagens e desvantagens do catálogo"""
     tipo = request.args.get('tipo', None)
-    
-    if tipo == 'Vantagem':
-        itens = VantagemDesvantagemCatalogo.listar_vantagens()
-    elif tipo == 'Desvantagem':
-        itens = VantagemDesvantagemCatalogo.listar_desvantagens()
-    else:
-        itens = VantagemDesvantagemCatalogo.listar_todas()
-    
-    return jsonify(itens)
+    if tipo not in ('Vantagem', 'Desvantagem'):
+        tipo = None
+    return jsonify(Acervo.listar_disponiveis('vantagens', _campanha_id(), tipo=tipo))
 
 @bp.route('/api/personagem/<int:personagem_id>/pericias/by-catalog', methods=['POST'])
 def adicionar_pericia_por_catalogo(personagem_id):
@@ -75,7 +73,12 @@ def adicionar_pericia_por_catalogo(personagem_id):
                     'message': f'Pontos insuficientes. Disponível: {pontos_disponiveis}, Necessário: {pontos}'
                 }), 400
         
-        cat = PericiaCatalogo.buscar_por_id(cat_id)
+        personagem = Personagem.buscar_por_id(personagem_id)
+        if not personagem:
+            return jsonify({'success': False, 'message': 'Personagem não encontrado'}), 404
+        if not Acervo.disponivel('pericias', personagem.get('id_campanha'), cat_id):
+            return jsonify({'success': False, 'message': 'Perícia não disponível nesta campanha'}), 404
+        cat = Acervo.registro_efetivo('pericias', personagem.get('id_campanha'), cat_id)
         if not cat:
             return jsonify({'success': False, 'message': 'Perícia não encontrada no catálogo'}), 404
         
@@ -101,8 +104,7 @@ def adicionar_pericia_por_catalogo(personagem_id):
 
 @bp.route('/api/itens/catalogo')
 def listar_itens_catalogo():
-    itens = ItemCatalogo.listar_todos()
-    return jsonify(itens)
+    return jsonify(Acervo.listar_disponiveis('itens', _campanha_id()))
 
 
 @bp.route('/api/personagem/<int:personagem_id>/inventario/by-catalog', methods=['POST'])
@@ -115,16 +117,18 @@ def adicionar_item_por_catalogo(personagem_id):
         catalogo_id = int(dados['catalogo_id'])
         quantidade = max(1, int(dados.get('quantidade', 1)))
 
-        item_catalogo = ItemCatalogo.buscar_por_id(catalogo_id)
+        personagem = Personagem.buscar_por_id(personagem_id)
+        if not personagem:
+            return jsonify({'success': False, 'message': 'Personagem não encontrado'}), 404
+        if not Acervo.disponivel('itens', personagem.get('id_campanha'), catalogo_id):
+            return jsonify({'success': False, 'message': 'Item não disponível nesta campanha'}), 404
+
+        item_catalogo = Acervo.registro_efetivo('itens', personagem.get('id_campanha'), catalogo_id)
         if not item_catalogo:
             return jsonify({'success': False, 'message': 'Item não encontrado no catálogo'}), 404
 
         preco_unitario = Decimal(str(item_catalogo.get('preco') or 0))
         peso_unitario = Decimal(str(item_catalogo.get('peso') or 0))
-
-        personagem = Personagem.buscar_por_id(personagem_id)
-        if not personagem:
-            return jsonify({'success': False, 'message': 'Personagem não encontrado'}), 404
 
         dinheiro_atual = Decimal(str(personagem.get('dinheiro') or 0))
         custo_total = preco_unitario * quantidade

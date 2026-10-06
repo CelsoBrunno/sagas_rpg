@@ -41,14 +41,11 @@
     <div style="margin-top: 3rem;">
         <h2>Catálogos</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-            <a href="{{ url_for('admin.admin_itens_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
-                Itens ({{ total_itens }})
+            <a href="{{ url_for('admin.admin_acervo') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
+                Acervo da campanha
             </a>
-            <a href="{{ url_for('admin.admin_pericias_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
-                Perícias ({{ total_pericias }})
-            </a>
-            <a href="{{ url_for('admin.admin_vantagens_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
-                Vantagens ({{ total_vantagens }})
+            <a href="{{ url_for('admin.admin_catalogo') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
+                Catálogo
             </a>
             <a href="{{ url_for('admin.admin_racas_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
                 Raças

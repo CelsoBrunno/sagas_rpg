@@ -3,11 +3,7 @@
 # Os catálogos são globais (valem para todas as campanhas).
 # ==========================================
 
-CUSTO_FACIL = "{a} [1]; {a}+1 [2]; {a}+2 [4]; {a}+3 [8]"
-CUSTO_MEDIA = "{a}-1 [1]; {a} [2]; {a}+1 [4]; {a}+2 [8]"
-CUSTO_DIFICIL = "{a}-2 [1]; {a}-1 [2]; {a} [4]; {a}+1 [8]"
-
-_CUSTOS = {'F': CUSTO_FACIL, 'M': CUSTO_MEDIA, 'D': CUSTO_DIFICIL}
+_CUSTOS = {'F': '1', 'M': '3', 'D': '7', 'VD': '15'}
 
 
 def _pericia(nome, atributo, dificuldade, descricao):
@@ -15,7 +11,7 @@ def _pericia(nome, atributo, dificuldade, descricao):
         'nome': nome,
         'atributo_base': atributo,
         'dificuldade': dificuldade,
-        'custo_texto': _CUSTOS[dificuldade].format(a=atributo),
+        'custo_texto': _CUSTOS[dificuldade],
         'descricao': descricao,
     }
 

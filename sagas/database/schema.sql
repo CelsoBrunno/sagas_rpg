@@ -239,7 +239,10 @@ CREATE TABLE IF NOT EXISTS magias_catalogo (
     pre_requisitos VARCHAR(255),
     pagina INT,
     descricao TEXT,
-    UNIQUE KEY uniq_magia_nome (nome)
+    origem ENUM('manual', 'campanha') NOT NULL DEFAULT 'manual',
+    id_campanha INT NULL,
+    UNIQUE KEY uniq_magia_nome (nome),
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Grimório: magias do personagem (só o mestre edita)
@@ -474,7 +477,11 @@ CREATE TABLE IF NOT EXISTS pericias_catalogo (
     dificuldade ENUM('F','M','D','VD') NOT NULL,
     custo_texto VARCHAR(100),
     descricao TEXT,
-    UNIQUE KEY uniq_pericia_nome (nome)
+    origem ENUM('manual', 'campanha') NOT NULL DEFAULT 'manual',
+    id_campanha INT NULL,
+    pagina INT NULL,
+    UNIQUE KEY uniq_pericia_nome (nome),
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Catálogo de Vantagens e Desvantagens
@@ -486,7 +493,11 @@ CREATE TABLE IF NOT EXISTS vantagens_desvantagens_catalogo (
     custo_texto VARCHAR(100),
     descricao TEXT,
     categoria VARCHAR(100),
-    UNIQUE KEY uniq_vd_nome (nome)
+    origem ENUM('manual', 'campanha') NOT NULL DEFAULT 'manual',
+    id_campanha INT NULL,
+    pagina INT NULL,
+    UNIQUE KEY uniq_vd_nome (nome),
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Catálogo de Itens
@@ -504,7 +515,82 @@ CREATE TABLE IF NOT EXISTS itens_catalogo (
     dano_gdp_tipo VARCHAR(50),
     rd_mod INT DEFAULT 0,
     rd_tipo VARCHAR(50),
-    UNIQUE KEY uniq_item_catalogo_nome (nome)
+    origem ENUM('manual', 'campanha') NOT NULL DEFAULT 'manual',
+    id_campanha INT NULL,
+    pagina INT NULL,
+    UNIQUE KEY uniq_item_catalogo_nome (nome),
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Acervo de criaturas (bloco curto) e o que cada campanha ligou
+CREATE TABLE IF NOT EXISTS acervo_criaturas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    categoria VARCHAR(100) NOT NULL DEFAULT 'monstro',
+    st INT NULL,
+    dx INT NULL,
+    iq INT NULL,
+    ht INT NULL,
+    vontade INT NULL,
+    percepcao INT NULL,
+    velocidade DECIMAL(4,2) NULL,
+    esquiva INT NULL,
+    deslocamento INT NULL,
+    tamanho VARCHAR(40),
+    peso VARCHAR(40),
+    caracteristicas TEXT,
+    pericias TEXT,
+    custo INT NULL,
+    pagina INT NULL,
+    origem ENUM('manual', 'campanha') NOT NULL DEFAULT 'manual',
+    id_campanha INT NULL,
+    UNIQUE KEY uniq_acervo_criatura_nome (nome),
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS campanha_pericia (
+    id_campanha INT NOT NULL,
+    id_pericia INT NOT NULL,
+    PRIMARY KEY (id_campanha, id_pericia),
+    ajustes TEXT NULL,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_pericia) REFERENCES pericias_catalogo(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS campanha_vantagem (
+    id_campanha INT NOT NULL,
+    id_vantagem INT NOT NULL,
+    PRIMARY KEY (id_campanha, id_vantagem),
+    ajustes TEXT NULL,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_vantagem) REFERENCES vantagens_desvantagens_catalogo(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS campanha_magia (
+    id_campanha INT NOT NULL,
+    id_magia INT NOT NULL,
+    PRIMARY KEY (id_campanha, id_magia),
+    ajustes TEXT NULL,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_magia) REFERENCES magias_catalogo(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS campanha_item (
+    id_campanha INT NOT NULL,
+    id_item INT NOT NULL,
+    PRIMARY KEY (id_campanha, id_item),
+    ajustes TEXT NULL,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_item) REFERENCES itens_catalogo(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS campanha_criatura (
+    id_campanha INT NOT NULL,
+    id_acervo INT NOT NULL,
+    PRIMARY KEY (id_campanha, id_acervo),
+    ajustes TEXT NULL,
+    FOREIGN KEY (id_campanha) REFERENCES campanhas(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_acervo) REFERENCES acervo_criaturas(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Uso temporário de uma ficha, sem trocar o dono

@@ -3,7 +3,7 @@
 from flask import jsonify, redirect, render_template, request, url_for
 import os
 from database import Database
-from models import Atributos, Pericia, Personagem, VantagemDesvantagem, VantagemDesvantagemCatalogo
+from models import Acervo, Atributos, Pericia, Personagem, VantagemDesvantagem, VantagemDesvantagemCatalogo
 from routes.ficha import bp
 from utils.acesso import verificar_login, exigir_login, exigir_admin
 
@@ -17,8 +17,17 @@ def adicionar_vantagem(personagem_id):
         custo = int(dados.get('custo_em_pontos', 0))
         
         # Busca informações do catálogo para verificar se tem níveis
-        from models import VantagemDesvantagemCatalogo
-        item_catalogo = VantagemDesvantagemCatalogo.buscar_por_nome(nome_item)
+        personagem = Personagem.buscar_por_id(personagem_id)
+        campanha_id = personagem.get('id_campanha') if personagem else None
+        item_catalogo = []
+        if campanha_id:
+            nome_limpo = nome_item.strip().lower()
+            item_catalogo = [
+                item for item in Acervo.listar_disponiveis('vantagens', campanha_id)
+                if (item.get('nome') or '').strip().lower() == nome_limpo
+            ]
+        if not item_catalogo:
+            item_catalogo = VantagemDesvantagemCatalogo.buscar_por_nome(nome_item)
         tem_niveis = False
         item_catalogo_info = None
         custo_base_catalogo = custo

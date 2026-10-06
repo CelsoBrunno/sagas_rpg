@@ -12,6 +12,7 @@ class PericiaCatalogo:
             """
             SELECT id, nome, atributo_base, dificuldade, custo_texto, descricao
             FROM pericias_catalogo
+            WHERE origem = 'manual'
             ORDER BY nome
             """
         )

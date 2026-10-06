@@ -33,6 +33,7 @@ from .raca import Raca
 from .classe import Classe
 from .bestiario import Bestiario
 from .magia import Magia, MagiaCatalogo
+from .acervo import Acervo
 
 __all__ = [
     # Personagens
@@ -58,6 +59,7 @@ __all__ = [
     'Classe',
     'Bestiario',
     'Magia',
-    'MagiaCatalogo'
+    'MagiaCatalogo',
+    'Acervo',
 ]
 

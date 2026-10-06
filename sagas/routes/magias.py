@@ -5,8 +5,8 @@
 
 from flask import Blueprint, request, redirect, url_for, flash, render_template
 
-from models import Magia, MagiaCatalogo, Personagem
-from utils.acesso import verificar_admin, verificar_login, pertence_a_campanha_ativa, exigir_login, exigir_admin
+from models import Acervo, Magia, Personagem
+from utils.acesso import campanha_da_sessao, verificar_admin, verificar_login, pertence_a_campanha_ativa, exigir_login, exigir_admin
 
 bp = Blueprint('magias', __name__)
 
@@ -68,7 +68,12 @@ def adicionar_magia(personagem_id):
 def adicionar_magia_do_catalogo(personagem_id):
     if not _personagem_editavel(personagem_id):
         return redirect(url_for('ficha.index'))
-    modelo = MagiaCatalogo.buscar_por_id(request.form.get('catalogo_id', type=int) or 0)
+    catalogo_id = request.form.get('catalogo_id', type=int) or 0
+    personagem = Personagem.buscar_por_id(personagem_id)
+    if not Acervo.disponivel('magias', personagem.get('id_campanha') if personagem else None, catalogo_id):
+        flash('Essa magia não está nesta campanha.', 'danger')
+        return _voltar_para_ficha(personagem_id)
+    modelo = Acervo.registro_efetivo('magias', personagem.get('id_campanha'), catalogo_id)
     if not modelo:
         flash('Escolha uma magia do catálogo.', 'danger')
         return _voltar_para_ficha(personagem_id)
@@ -88,7 +93,9 @@ def adicionar_magia_do_catalogo(personagem_id):
 @bp.route('/magias/catalogo')
 @exigir_login
 def catalogo_magias():
-    return render_template('magias_catalogo.html', magias=MagiaCatalogo.listar_todas())
+    campanha = campanha_da_sessao()
+    magias = Acervo.listar_disponiveis('magias', campanha['id'] if campanha else None)
+    return render_template('magias_catalogo.html', magias=magias)
 
 
 @bp.route('/magias/<int:magia_id>/editar', methods=['POST'])

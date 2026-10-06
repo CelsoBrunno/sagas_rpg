@@ -70,18 +70,12 @@ def admin_dashboard():
     personagens_pendentes = len(Personagem.listar_por_status_criacao('Pendente'))
     total_usuarios = len(Usuario.listar_todos())
     total_campanhas = len(Campanha.listar_todas())
-    total_itens = len(ItemCatalogo.listar_todos())
-    total_pericias = len(PericiaCatalogo.listar_todas())
-    total_vantagens = len(VantagemDesvantagemCatalogo.listar_todas())
     
     return render_template('admin_dashboard.html',
                          total_personagens=total_personagens,
                          personagens_pendentes=personagens_pendentes,
                          total_usuarios=total_usuarios,
-                         total_campanhas=total_campanhas,
-                         total_itens=total_itens,
-                         total_pericias=total_pericias,
-                         total_vantagens=total_vantagens)
+                         total_campanhas=total_campanhas)
 
 # ==========================================
 # Admin - Gerenciamento de Catálogo de Itens
@@ -92,8 +86,7 @@ def admin_dashboard():
 def admin_itens_lista():
     """Lista todos os itens do catálogo"""
     
-    itens = ItemCatalogo.listar_todos()
-    return render_template('admin_itens_lista.html', itens=itens)
+    return redirect(url_for('admin.admin_catalogo', aba='itens'))
 
 @bp.route('/admin/itens/novo', methods=['GET', 'POST'])
 @exigir_admin(mensagem='Acesso restrito ao Mestre (admin).', destino='admin.admin_itens_lista')
@@ -179,8 +172,7 @@ def admin_itens_deletar(id):
 def admin_pericias_lista():
     """Lista todas as perícias do catálogo"""
     
-    pericias = PericiaCatalogo.listar_todas()
-    return render_template('admin_pericias_lista.html', pericias=pericias)
+    return redirect(url_for('admin.admin_catalogo', aba='pericias'))
 
 @bp.route('/admin/pericias/novo', methods=['GET', 'POST'])
 @exigir_admin(mensagem='Acesso restrito ao Mestre (admin).', destino='admin.admin_pericias_lista')
@@ -252,8 +244,7 @@ def admin_pericias_deletar(id):
 def admin_vantagens_lista():
     """Lista todas as vantagens/desvantagens do catálogo"""
     
-    vantagens = VantagemDesvantagemCatalogo.listar_todas()
-    return render_template('admin_vantagens_lista.html', vantagens=vantagens)
+    return redirect(url_for('admin.admin_catalogo', aba='vantagens'))
 
 @bp.route('/admin/vantagens/novo', methods=['GET', 'POST'])
 @exigir_admin(mensagem='Acesso restrito ao Mestre (admin).', destino='admin.admin_vantagens_lista')

@@ -21,6 +21,7 @@ class ItemCatalogo:
                    COALESCE(rd_mod, 0) AS rd_mod,
                    rd_tipo
             FROM itens_catalogo
+            WHERE origem = 'manual'
             ORDER BY nome
         """
         return Database.execute_query(query)
