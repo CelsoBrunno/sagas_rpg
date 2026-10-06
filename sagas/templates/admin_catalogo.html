@@ -6,7 +6,7 @@
 <div class="container">
     <h1>Catálogo de {{ campanha.nome_campanha }}</h1>
     {% if adicionados %}
-    <p>Estes registros já estão nesta campanha. Remover devolve o item para a lista de adicionar.</p>
+    <p>Estes registros já estão nesta campanha. O botão − devolve o registro para a lista de adicionar.</p>
     {% else %}
     <p>A lista mostra o que ainda não entrou nesta campanha. O botão + adiciona o registro e ele passa a aparecer só em Ver adicionados.</p>
     {% endif %}
@@ -40,7 +40,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% set custos_nivel = {'F': '1', 'M': '3', 'D': '7', 'VD': '15'} %}
+                {% set custos_nivel = {'F': '1', 'M': '3', 'D': '7', 'MD': '15'} %}
                 {% for item in itens %}
                 {% set valores = item.efetivo if adicionados else item %}
                 {% set formulario = 'ajuste-' ~ item.id %}
@@ -48,6 +48,9 @@
                     <td>
                         {% if adicionados %}
                         <form id="{{ formulario }}" method="post" action="{{ url_for('admin.admin_catalogo_ajuste', aba=aba, item_id=item.id) }}"></form>
+                        <form method="post" action="{{ url_for('admin.admin_catalogo_remover', aba=aba, item_id=item.id) }}">
+                            <button type="submit" class="btn-primary" style="padding: 0.25rem 0.5rem;">-</button>
+                        </form>
                         {% else %}
                         <form method="post" action="{{ url_for('admin.admin_catalogo_adicionar', aba=aba, item_id=item.id) }}">
                             <button type="submit" class="btn-primary" style="padding: 0.25rem 0.5rem;">+</button>
@@ -86,9 +89,6 @@
                         <button type="submit" class="btn-primary" form="{{ formulario }}" style="padding: 0.25rem 0.5rem;">Salvar</button>
                         <form method="post" action="{{ url_for('admin.admin_catalogo_restaurar', aba=aba, item_id=item.id) }}" style="display: inline;">
                             <button type="submit" class="btn-secondary" style="padding: 0.25rem 0.5rem;">Restaurar padrão</button>
-                        </form>
-                        <form method="post" action="{{ url_for('admin.admin_catalogo_remover', aba=aba, item_id=item.id) }}" style="display: inline;">
-                            <button type="submit" class="btn-danger" style="padding: 0.25rem 0.5rem;">Remover</button>
                         </form>
                     </td>
                     {% endif %}
@@ -148,7 +148,7 @@
     var campo = document.getElementById('popup-campo');
     var titulo = document.getElementById('popup-titulo');
     var origem = null;
-    var custosNivel = {F: '1', M: '3', D: '7', VD: '15'};
+    var custosNivel = {F: '1', M: '3', D: '7', MD: '15'};
     document.querySelectorAll('select[name="dificuldade"]').forEach(function (selecao) {
         selecao.addEventListener('change', function () {
             var linha = selecao.closest('tr');

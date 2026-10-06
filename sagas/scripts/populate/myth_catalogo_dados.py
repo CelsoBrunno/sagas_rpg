@@ -3,7 +3,7 @@
 # Os catálogos são globais (valem para todas as campanhas).
 # ==========================================
 
-_CUSTOS = {'F': '1', 'M': '3', 'D': '7', 'VD': '15'}
+_CUSTOS = {'F': '1', 'M': '3', 'D': '7', 'MD': '15'}
 
 
 def _pericia(nome, atributo, dificuldade, descricao):

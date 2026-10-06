@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS pericias (
     personagem_id INT NOT NULL,
     nome_pericia VARCHAR(200) NOT NULL,
     atributo_base ENUM('ST', 'DX', 'IQ', 'HT') NOT NULL DEFAULT 'DX',
-    dificuldade ENUM('F', 'M', 'D', 'VD') NOT NULL DEFAULT 'M',
+    dificuldade ENUM('F', 'M', 'D', 'MD') NOT NULL DEFAULT 'M',
     pontos_investidos INT DEFAULT 0,
     nivel_habilidade_calculado INT,
     FOREIGN KEY (personagem_id) REFERENCES personagens(id) ON DELETE CASCADE
@@ -474,7 +474,7 @@ CREATE TABLE IF NOT EXISTS pericias_catalogo (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(200) NOT NULL,
     atributo_base ENUM('ST','DX','IQ','HT') NOT NULL,
-    dificuldade ENUM('F','M','D','VD') NOT NULL,
+    dificuldade ENUM('F','M','D','MD') NOT NULL,
     custo_texto VARCHAR(100),
     descricao TEXT,
     origem ENUM('manual', 'campanha') NOT NULL DEFAULT 'manual',

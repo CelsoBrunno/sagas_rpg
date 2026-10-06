@@ -21,13 +21,13 @@ CATALOGOS = {
         'campos': (
             {'nome': 'nome', 'rotulo': 'Nome'},
             {'nome': 'atributo_base', 'rotulo': 'Atributo', 'opcoes': ('ST', 'DX', 'IQ', 'HT')},
-            {'nome': 'dificuldade', 'rotulo': 'Dificuldade', 'opcoes': ('F', 'M', 'D', 'VD')},
+            {'nome': 'dificuldade', 'rotulo': 'Dificuldade', 'opcoes': ('F', 'M', 'D', 'MD')},
             {'nome': 'custo_texto', 'rotulo': 'Custo'},
         ),
         'tela': (
             {'nome': 'nome', 'rotulo': 'Nome'},
             {'nome': 'atributo_base', 'rotulo': 'Atributo', 'opcoes': ('ST', 'DX', 'IQ', 'HT')},
-            {'nome': 'dificuldade', 'rotulo': 'Dificuldade', 'opcoes': ('F', 'M', 'D', 'VD')},
+            {'nome': 'dificuldade', 'rotulo': 'Dificuldade', 'opcoes': ('F', 'M', 'D', 'MD')},
             {'nome': 'custo_texto', 'rotulo': 'Custo'},
             {'nome': 'pagina', 'rotulo': 'Página', 'tipo': 'numero'},
             {'nome': 'descricao', 'rotulo': 'Descrição', 'tipo': 'longo'},
@@ -486,7 +486,7 @@ class Acervo:
         dificuldade = dados.get('dificuldade') or 'M'
         if atributo not in ('ST', 'DX', 'IQ', 'HT'):
             raise ValueError('Atributo inválido.')
-        if dificuldade not in ('F', 'M', 'D', 'VD'):
+        if dificuldade not in ('F', 'M', 'D', 'MD'):
             raise ValueError('Dificuldade inválida.')
         Database.execute_query(
             """
@@ -494,7 +494,7 @@ class Acervo:
                 (nome, atributo_base, dificuldade, custo_texto, origem, id_campanha)
             VALUES (%s, %s, %s, %s, 'campanha', %s)
             """,
-            (nome, atributo, dificuldade, {'F': '1', 'M': '3', 'D': '7', 'VD': '15'}[dificuldade], campanha_id),
+            (nome, atributo, dificuldade, {'F': '1', 'M': '3', 'D': '7', 'MD': '15'}[dificuldade], campanha_id),
             fetch=False,
         )
 

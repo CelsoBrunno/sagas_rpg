@@ -319,7 +319,7 @@ function renderizarPericiasModal() {
         const isSelected = periciasSelecionadas.has(pericia.id);
         const descricao = pericia.descricao || '-';
         const descricaoTruncada = descricao.length > 60 ? descricao.substring(0, 60) + '...' : descricao;
-        const dificuldadeNome = {'F': 'Fácil', 'M': 'Média', 'D': 'Difícil', 'VD': 'Muito Difícil'}[pericia.dificuldade] || pericia.dificuldade;
+        const dificuldadeNome = {'F': 'Fácil', 'M': 'Média', 'D': 'Difícil', 'MD': 'Muito Difícil'}[pericia.dificuldade] || pericia.dificuldade;
         
         html += `
             <tr>

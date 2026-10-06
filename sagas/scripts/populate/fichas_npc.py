@@ -79,7 +79,7 @@ def criar_personagem_completo(dados_personagem):
             {'nome': str, 'custo': int (negativo), 'notas': str (opcional)}
         ],
         'pericias': [  # Lista opcional
-            {'nome': str, 'atributo_base': 'ST'|'DX'|'IQ'|'HT', 'dificuldade': 'F'|'M'|'D'|'VD', 'pontos': int}
+            {'nome': str, 'atributo_base': 'ST'|'DX'|'IQ'|'HT', 'dificuldade': 'F'|'M'|'D'|'MD', 'pontos': int}
         ],
         'inventario': [  # Lista opcional
             {'nome': str, 'quantidade': int, 'peso': float, 'notas': str (opcional)}

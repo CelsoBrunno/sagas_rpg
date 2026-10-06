@@ -52,7 +52,7 @@ function renderizarCatalogoPericias() {
         'F': 'Fácil',
         'M': 'Média',
         'D': 'Difícil',
-        'VD': 'Muito Difícil'
+        'MD': 'Muito Difícil'
     };
 
     let html = '<table class="table-gurps" style="width: 100%;">';

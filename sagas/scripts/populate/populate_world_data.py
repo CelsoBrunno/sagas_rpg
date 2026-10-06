@@ -179,7 +179,7 @@ def popular_catalogo_pericias():
         ("Armadilhas", "IQ", "M", "IQ-1 [1]; IQ [2]; IQ+1 [4]; IQ+2 [8]", "Configurar, detectar e desarmar armadilhas mecânicas simples."),
         ("Arqueologia", "IQ", "D", "IQ-6 [1]; IQ-5 [2]; IQ-4 [4]; IQ-3 [8]; IQ-2 [12]; IQ-1 [16]; IQ [20]", "Estudo de culturas antigas, escavações e interpretação de artefatos."),
         ("Avaliação", "IQ", "M", "IQ-5 [1]; IQ-4 [2]; IQ-3 [4]; IQ-2 [8]; IQ-1 [12]; IQ [16]", "Determinar o valor de itens, tesouros ou mercadorias."),
-        ("Biologia", "IQ", "VD", "IQ-3 [1]; IQ-2 [2]; IQ-1 [4]; IQ [8]", "Conhecimento de ecossistemas, anatomia básica e classificação de seres vivos."),
+        ("Biologia", "IQ", "MD", "IQ-3 [1]; IQ-2 [2]; IQ-1 [4]; IQ [8]", "Conhecimento de ecossistemas, anatomia básica e classificação de seres vivos."),
         ("Briga", "DX", "F", "DX-4 [1]; DX-3 [2]; DX-2 [4]; DX-1 [8]; DX [12]", "Combate desarmado básico; socos, joelhadas e cabeçadas."),
         ("Camuflagem", "IQ", "F", "IQ-3 [1]; IQ-2 [2]; IQ-1 [4]; IQ [8]", "Esconder pessoas, objetos ou trilhas em ambientes naturais."),
         ("Cartografia", "IQ", "M", "IQ-5 [1]; IQ-4 [2]; IQ-3 [4]; IQ-2 [8]; IQ-1 [12]; IQ [16]", "Criação e leitura de mapas, interpretação de coordenadas."),
@@ -193,7 +193,7 @@ def popular_catalogo_pericias():
         ("Etiqueta", "IQ", "F", "IQ-3 [1]; IQ-2 [2]; IQ-1 [4]; IQ [8]", "Conhecimento dos costumes sociais para não ofender anfitriões."),
         ("Falsificação", "IQ", "D", "IQ-6 [1]; IQ-5 [2]; IQ-4 [4]; IQ-3 [8]; IQ-2 [12]; IQ-1 [16]; IQ [20]", "Criar documentos ilegais, moeda falsa e assinaturas perfeitas."),
         ("Furtividade", "DX", "M", "DX-4 [1]; DX-3 [2]; DX-2 [4]; DX-1 [8]; DX [12]", "Mover-se silenciosamente, evitar detecção e aproximar-se de alvos."),
-        ("Herbologia", "IQ", "VD", "IQ-3 [1]; IQ-2 [2]; IQ-1 [4]; IQ [8]", "Identificar plantas, criar remédios simples e venenos naturais."),
+        ("Herbologia", "IQ", "MD", "IQ-3 [1]; IQ-2 [2]; IQ-1 [4]; IQ [8]", "Identificar plantas, criar remédios simples e venenos naturais."),
         ("História", "IQ", "D", "IQ-2 [1]; IQ-1 [2]; IQ [4]; IQ+1 [8]", "Contextualizar eventos históricos, culturas e líderes importantes."),
         ("Intimidação", "IQ", "M", "IQ-1 [1]; IQ [2]; IQ+1 [4]; IQ+2 [8]", "Coagir, ameaçar e assustar alvos; usa Vontade (derivada de IQ) como base."),
         ("Investigação", "IQ", "D", "IQ-6 [1]; IQ-5 [2]; IQ-4 [4]; IQ-3 [8]; IQ-2 [12]; IQ-1 [16]; IQ [20]", "Coletar pistas, analisar cenas e interrogar testemunhas."),
@@ -219,7 +219,7 @@ def popular_catalogo_pericias():
             nome=nome,
             atributo_base=atributo,
             dificuldade=dificuldade,
-            custo_texto={'F': '1', 'M': '3', 'D': '7', 'VD': '15'}[dificuldade],
+            custo_texto={'F': '1', 'M': '3', 'D': '7', 'MD': '15'}[dificuldade],
             descricao=descricao
         )
         if ja_existia:
