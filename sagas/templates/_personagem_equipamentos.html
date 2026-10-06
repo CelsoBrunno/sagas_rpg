@@ -21,7 +21,7 @@
             </div>
 
             {% if inventario_efeitos %}
-            <div id="equipamentos-efeitos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+            <div id="equipamentos-efeitos-resumo" class="caixa-tracejada">
                 <p style="margin:0 0 .75rem 0; font-weight:600;">Resumo de efeitos ativos</p>
                 <ul id="equipamentos-efeitos-resumo-lista" style="margin:0; padding-left:1.2rem;">
                     {% if inventario_efeitos.resumo_textual %}
@@ -33,7 +33,7 @@
                     {% endif %}
                 </ul>
             </div>
-            <div id="equipamentos-danos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+            <div id="equipamentos-danos-resumo" class="caixa-tracejada">
                 <p style="margin:0 0 .75rem 0; font-weight:600;">Danos por armas equipadas</p>
                 <ul id="equipamentos-danos-resumo-lista" style="margin:0; padding-left:1.2rem;">
                     {% if inventario_efeitos.danos %}
@@ -51,7 +51,7 @@
                 </ul>
             </div>
             {% if inventario_efeitos.rd and inventario_efeitos.rd|length > 0 %}
-            <div id="equipamentos-rd-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+            <div id="equipamentos-rd-resumo" class="caixa-tracejada">
                 <p style="margin:0 0 .75rem 0; font-weight:600;">Redução de Dano (RD) por equipamentos</p>
                 <ul id="equipamentos-rd-resumo-lista" style="margin:0; padding-left:1.2rem;">
                     {% for rd_item in inventario_efeitos.rd %}

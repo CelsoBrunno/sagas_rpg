@@ -15,7 +15,7 @@
             </div>
 
             {% if inventario_efeitos %}
-            <div id="inventario-efeitos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+            <div id="inventario-efeitos-resumo" class="caixa-tracejada">
                 <p style="margin:0 0 .75rem 0; font-weight:600;">Resumo de efeitos ativos</p>
                 <ul id="inventario-efeitos-resumo-lista" style="margin:0; padding-left:1.2rem;">
                     {% if inventario_efeitos.resumo_textual %}
@@ -27,7 +27,7 @@
                     {% endif %}
                 </ul>
             </div>
-            <div id="inventario-danos-resumo" style="background-color: var(--cor-fundo-cinza-escuro); border: 1px dashed var(--cor-borda); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+            <div id="inventario-danos-resumo" class="caixa-tracejada">
                 <p style="margin:0 0 .75rem 0; font-weight:600;">Danos por armas equipadas</p>
                 <ul id="inventario-danos-resumo-lista" style="margin:0; padding-left:1.2rem;">
                     {% if inventario_efeitos.danos %}
@@ -144,7 +144,7 @@
                     </tbody>
                 </table>
             </div>
-            <div id="inventario-empty-state" class="card card-empty-inventario {% if inventario and inventario|length > 0 %}is-hidden{% endif %}">
+            <div id="inventario-empty-state" class="card caixa-tracejada {% if inventario and inventario|length > 0 %}is-hidden{% endif %}">
                 <p style="color: var(--cor-texto-claro); margin: 0;">
                     🎒 Nenhum item no inventário ainda.<br>
                     Utilize o botão "💰 Comprar Item do Catálogo" ou, como mestre, adicione manualmente.

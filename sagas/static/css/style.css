@@ -29,6 +29,9 @@
   --cor-texto-claro: #8B8B8B; /* Prata */
   --cor-texto-branco: #F5E6D3; /* Bege claro (parchment) */
   --cor-texto-cinza-claro: #A9A9A9; /* Prata claro */
+
+  /* Bordas */
+  --cor-borda: var(--cor-texto-claro);
   
   /* Cores de Destaque */
   --cor-destaque-verde: #28a745; /* Mantém verde para sucesso */
@@ -212,19 +215,34 @@ p {
 }
 
 .card h3,
-.card .form-label,
-.card label {
-  color: var(--cor-texto-branco) !important;
-}
-
 .card p,
+.card label,
 .card .form-label,
 .card input[type="text"],
 .card input[type="number"],
 .card input[type="email"],
 .card textarea,
 .card select {
-  color: var(--cor-texto-branco) !important;
+  color: var(--cor-texto-branco);
+}
+
+/* Caixa tracejada: resumos da ficha; junto com .card, aviso de lista vazia */
+.caixa-tracejada,
+.card.caixa-tracejada {
+  background-color: var(--cor-fundo-cinza-escuro);
+  border: 1px dashed var(--cor-borda);
+}
+
+.caixa-tracejada {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.card.caixa-tracejada {
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
 }
 
 .card .form-control {
