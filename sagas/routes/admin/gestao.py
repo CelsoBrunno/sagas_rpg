@@ -5,7 +5,7 @@ import os
 from database import Database
 from models import Campanha, ItemCatalogo, PericiaCatalogo, Personagem, SessaoLog, Usuario, VantagemDesvantagemCatalogo
 from routes.admin import bp
-from utils.acesso import verificar_admin, exigir_login, exigir_admin
+from utils.acesso import campanha_da_sessao, verificar_admin, exigir_login, exigir_admin
 
 @bp.route('/admin/sessoes')
 @exigir_admin
@@ -63,19 +63,23 @@ def api_distribuir_pontos_sessao():
 @bp.route('/admin')
 @exigir_admin
 def admin_dashboard():
-    """Dashboard administrativo"""
-    
-    # Estatísticas
-    total_personagens = len(Personagem.listar_todos())
-    personagens_pendentes = len(Personagem.listar_por_status_criacao('Pendente'))
-    total_usuarios = len(Usuario.listar_todos())
-    total_campanhas = len(Campanha.listar_todas())
-    
+    """Dashboard administrativo. Personagens e pendentes contam só a campanha ativa."""
+    campanha = campanha_da_sessao()
+    total_personagens = personagens_pendentes = None
+    if campanha:
+        total_personagens = len(Personagem.listar_por_campanha(campanha['id']) or [])
+        personagens_pendentes = len(_da_campanha(Personagem.listar_por_status_criacao('Pendente'), campanha['id']))
+
     return render_template('admin_dashboard.html',
+                         campanha=campanha,
                          total_personagens=total_personagens,
                          personagens_pendentes=personagens_pendentes,
-                         total_usuarios=total_usuarios,
-                         total_campanhas=total_campanhas)
+                         total_usuarios=len(Usuario.listar_todos()),
+                         total_campanhas=len(Campanha.listar_todas()))
+
+
+def _da_campanha(personagens, campanha_id):
+    return [p for p in (personagens or []) if p.get('id_campanha') == campanha_id]
 
 # ==========================================
 # Admin - Gerenciamento de Catálogo de Itens
@@ -470,8 +474,13 @@ def admin_personagens_lista():
         personagens = Personagem.listar_por_status_criacao('Rejeitado')
     else:
         personagens = Personagem.listar_todos_admin()
-    
-    return render_template('admin_personagens_lista.html', personagens=personagens, status_filter=status_filter)
+
+    campanha_filtro = Campanha.buscar_por_id(request.args.get('campanha', type=int) or 0)
+    if campanha_filtro:
+        personagens = _da_campanha(personagens, campanha_filtro['id'])
+
+    return render_template('admin_personagens_lista.html', personagens=personagens, status_filter=status_filter,
+                           campanha_filtro=campanha_filtro)
 
 @bp.route('/admin/personagens/<int:id>/aprovar', methods=['POST'])
 def admin_personagens_aprovar(id):

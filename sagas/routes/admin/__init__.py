@@ -2,4 +2,4 @@ from flask import Blueprint
 
 bp = Blueprint('admin', __name__)
 
-from routes.admin import acervo, catalogo, gestao, origens  # noqa: E402, F401
+from routes.admin import catalogo, gestao, origens  # noqa: E402, F401

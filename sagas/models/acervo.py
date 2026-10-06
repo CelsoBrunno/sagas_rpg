@@ -29,7 +29,6 @@ CATALOGOS = {
             {'nome': 'atributo_base', 'rotulo': 'Atributo', 'opcoes': ('ST', 'DX', 'IQ', 'HT')},
             {'nome': 'dificuldade', 'rotulo': 'Dificuldade', 'opcoes': ('F', 'M', 'D', 'MD')},
             {'nome': 'custo_texto', 'rotulo': 'Custo'},
-            {'nome': 'pagina', 'rotulo': 'Página', 'tipo': 'numero'},
             {'nome': 'descricao', 'rotulo': 'Descrição', 'tipo': 'longo'},
         ),
     },
@@ -56,7 +55,6 @@ CATALOGOS = {
             {'nome': 'custo_base', 'rotulo': 'Custo', 'tipo': 'numero'},
             {'nome': 'custo_texto', 'rotulo': 'Custo em texto'},
             {'nome': 'categoria', 'rotulo': 'Categoria'},
-            {'nome': 'pagina', 'rotulo': 'Página', 'tipo': 'numero'},
             {'nome': 'descricao', 'rotulo': 'Descrição', 'tipo': 'longo'},
         ),
     },
@@ -69,7 +67,6 @@ CATALOGOS = {
             ('nome', 'Nome'),
             ('escola', 'Escola'),
             ('custo', 'Custo'),
-            ('pagina', 'Página'),
         ),
         'campos': (
             {'nome': 'nome', 'rotulo': 'Nome'},
@@ -85,7 +82,6 @@ CATALOGOS = {
             {'nome': 'tempo', 'rotulo': 'Tempo'},
             {'nome': 'duracao', 'rotulo': 'Duração'},
             {'nome': 'pre_requisitos', 'rotulo': 'Pré-requisitos'},
-            {'nome': 'pagina', 'rotulo': 'Página', 'tipo': 'numero'},
             {'nome': 'descricao', 'rotulo': 'Descrição', 'tipo': 'longo'},
         ),
     },
@@ -118,7 +114,6 @@ CATALOGOS = {
             {'nome': 'dano_gdp_tipo', 'rotulo': 'Tipo GDP'},
             {'nome': 'rd_mod', 'rotulo': 'RD', 'tipo': 'numero'},
             {'nome': 'rd_tipo', 'rotulo': 'Tipo RD'},
-            {'nome': 'pagina', 'rotulo': 'Página', 'tipo': 'numero'},
             {'nome': 'descricao', 'rotulo': 'Descrição', 'tipo': 'longo'},
         ),
     },
@@ -160,7 +155,6 @@ CATALOGOS = {
             {'nome': 'tamanho', 'rotulo': 'Tamanho'},
             {'nome': 'peso', 'rotulo': 'Peso'},
             {'nome': 'custo', 'rotulo': 'Custo', 'tipo': 'numero'},
-            {'nome': 'pagina', 'rotulo': 'Página', 'tipo': 'numero'},
             {'nome': 'caracteristicas', 'rotulo': 'Características', 'tipo': 'longo'},
             {'nome': 'pericias', 'rotulo': 'Perícias', 'tipo': 'longo'},
         ),
@@ -232,32 +226,6 @@ class Acervo:
         return _spec(aba)
 
     @staticmethod
-    def listar_mestre(aba, campanha_id, busca=''):
-        spec = _spec(aba)
-        coluna = spec['coluna']
-        filtro = ''
-        params = [campanha_id, campanha_id]
-        termo = (busca or '').strip()
-        if termo:
-            filtro = ' AND c.nome LIKE %s'
-            params.append(f'%{termo}%')
-        query = f"""
-            SELECT c.*,
-                   CASE
-                       WHEN c.origem = 'campanha' OR s.{coluna} IS NOT NULL THEN 1
-                       ELSE 0
-                   END AS selecionado
-            FROM {spec['tabela']} c
-            LEFT JOIN {spec['ligacao']} s
-                ON s.{coluna} = c.id AND s.id_campanha = %s
-            WHERE c.origem = 'manual'
-               OR (c.origem = 'campanha' AND c.id_campanha = %s)
-            {filtro}
-            ORDER BY c.nome
-        """
-        return Database.execute_query(query, tuple(params)) or []
-
-    @staticmethod
     def listar_disponiveis(aba, campanha_id, tipo=None):
         if not campanha_id:
             return []
@@ -299,32 +267,15 @@ class Acervo:
         return bool(Database.execute_query(query, (campanha_id, item_id, campanha_id)))
 
     @staticmethod
-    def definir(aba, campanha_id, item_id, marcar):
-        spec = _spec(aba)
-        item = Acervo._buscar(spec, item_id)
-        if not item or item.get('origem') != 'manual':
-            return False
-        coluna = spec['coluna']
-        if marcar:
-            Database.execute_query(
-                f"INSERT IGNORE INTO {spec['ligacao']} (id_campanha, {coluna}) VALUES (%s, %s)",
-                (campanha_id, item_id),
-                fetch=False,
-            )
-            if aba == 'criaturas':
-                Acervo._garantir_bestiario(campanha_id, item)
-        else:
-            Database.execute_query(
-                f"DELETE FROM {spec['ligacao']} WHERE id_campanha = %s AND {coluna} = %s",
-                (campanha_id, item_id),
-                fetch=False,
-            )
-        return True
-
-    @staticmethod
-    def listar_catalogo(aba, campanha_id, so_adicionados=False):
+    def listar_catalogo(aba, campanha_id, so_adicionados=False, busca=''):
         spec = _spec(aba)
         coluna = spec['coluna']
+        filtro = ''
+        params = [campanha_id, campanha_id]
+        termo = (busca or '').strip()
+        if termo:
+            filtro = 'AND c.nome LIKE %s'
+            params.append(f'%{termo}%')
         linhas = Database.execute_query(
             f"""
             SELECT c.*, s.ajustes,
@@ -332,11 +283,12 @@ class Acervo:
             FROM {spec['tabela']} c
             LEFT JOIN {spec['ligacao']} s
                 ON s.{coluna} = c.id AND s.id_campanha = %s
-            WHERE c.origem = 'manual'
-               OR (c.origem = 'campanha' AND c.id_campanha = %s)
+            WHERE (c.origem = 'manual'
+               OR (c.origem = 'campanha' AND c.id_campanha = %s))
+            {filtro}
             ORDER BY c.nome
             """,
-            (campanha_id, campanha_id),
+            tuple(params),
         ) or []
         prontas = []
         for linha in linhas:

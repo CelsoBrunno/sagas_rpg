@@ -5,38 +5,43 @@
 {% block content %}
 <div class="container">
     <h1>Catálogo de {{ campanha.nome_campanha }}</h1>
-    {% if adicionados %}
-    <p>Estes registros já estão nesta campanha. O botão − devolve o registro para a lista de adicionar.</p>
-    {% else %}
-    <p>A lista mostra o que ainda não entrou nesta campanha. O botão + adiciona o registro e ele passa a aparecer só em Ver adicionados.</p>
-    {% endif %}
-    {% if aba == 'pericias' %}
-    <p>O custo é o valor do nível: Fácil 1, Média 3, Difícil 7 e Muito Difícil 15.</p>
-    {% endif %}
 
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0;">
         {% for chave, item in abas %}
-        <a href="{{ url_for('admin.admin_catalogo', aba=chave, adicionados=1 if adicionados else None) }}"
+        <a href="{{ url_for('admin.admin_catalogo', aba=chave, adicionados=1 if adicionados else None, q=busca or None) }}"
            class="{% if chave == aba %}btn-primary{% else %}btn-secondary{% endif %}"
            style="padding: 0.5rem 0.75rem;">{{ item.rotulo }}</a>
         {% endfor %}
     </div>
 
-    {% if adicionados %}
-    <a href="{{ url_for('admin.admin_catalogo', aba=aba) }}" class="btn-primary">Para adicionar</a>
-    {% else %}
-    <a href="{{ url_for('admin.admin_catalogo', aba=aba, adicionados=1) }}" class="btn-secondary">Ver adicionados</a>
-    {% endif %}
+    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+        {% if adicionados %}
+        <a href="{{ url_for('admin.admin_catalogo', aba=aba, q=busca or None) }}" class="btn-secondary" style="min-width: 12rem; text-align: center;">Para adicionar</a>
+        {% else %}
+        <a href="{{ url_for('admin.admin_catalogo', aba=aba, adicionados=1, q=busca or None) }}" class="btn-secondary" style="min-width: 12rem; text-align: center;">Ver adicionados</a>
+        {% endif %}
+        <form method="get" action="{{ url_for('admin.admin_catalogo') }}">
+            <input type="hidden" name="aba" value="{{ aba }}">
+            {% if adicionados %}<input type="hidden" name="adicionados" value="1">{% endif %}
+            <input type="search" name="q" value="{{ busca }}" placeholder="Buscar por nome" style="padding: 0.5rem; min-width: 16rem;">
+            <button type="submit" class="btn-secondary">Buscar</button>
+        </form>
+    </div>
 
     <div class="table-responsive" style="margin-top: 1rem;">
-        <table class="table-gurps">
+        <table class="table-gurps" style="table-layout: fixed; min-width: {{ spec.tela|length * 8 + 12 }}rem;">
+            <colgroup>
+                <col style="width: 4.5rem;">
+                {% for campo in spec.tela %}<col>{% endfor %}
+                <col style="width: 7.5rem;">
+            </colgroup>
             <thead>
                 <tr>
                     <th></th>
                     {% for campo in spec.tela %}
                     <th>{{ campo.rotulo }}</th>
                     {% endfor %}
-                    {% if adicionados %}<th></th>{% endif %}
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -47,12 +52,16 @@
                 <tr>
                     <td>
                         {% if adicionados %}
-                        <form id="{{ formulario }}" method="post" action="{{ url_for('admin.admin_catalogo_ajuste', aba=aba, item_id=item.id) }}"></form>
+                        <form id="{{ formulario }}" method="post" action="{{ url_for('admin.admin_catalogo_ajuste', aba=aba, item_id=item.id) }}">
+                            <input type="hidden" name="q" value="{{ busca }}">
+                        </form>
                         <form method="post" action="{{ url_for('admin.admin_catalogo_remover', aba=aba, item_id=item.id) }}">
+                            <input type="hidden" name="q" value="{{ busca }}">
                             <button type="submit" class="btn-primary" style="padding: 0.25rem 0.5rem;">-</button>
                         </form>
                         {% else %}
                         <form method="post" action="{{ url_for('admin.admin_catalogo_adicionar', aba=aba, item_id=item.id) }}">
+                            <input type="hidden" name="q" value="{{ busca }}">
                             <button type="submit" class="btn-primary" style="padding: 0.25rem 0.5rem;">+</button>
                         </form>
                         {% endif %}
@@ -66,16 +75,16 @@
                         <input type="hidden" name="custo_texto" form="{{ formulario }}" value="{{ custo }}">
                         {% endif %}
                         {% elif adicionados and campo.tipo == 'longo' %}
-                        <button type="button" class="btn-secondary js-texto" style="padding: 0.25rem 0.5rem;">{{ campo.rotulo }}</button>
+                        <button type="button" class="btn-secondary js-texto" style="padding: 0.25rem 0.5rem;" title="{{ campo.rotulo }}" aria-label="{{ campo.rotulo }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
                         <textarea name="{{ campo.nome }}" class="texto-fonte" form="{{ formulario }}" hidden>{{ valores[campo.nome] or '' }}</textarea>
                         {% elif adicionados and campo.opcoes %}
-                        <select name="{{ campo.nome }}" form="{{ formulario }}">
+                        <select name="{{ campo.nome }}" form="{{ formulario }}" style="width: 100%;">
                             {% for opcao in campo.opcoes %}
                             <option value="{{ opcao }}" {% if valores[campo.nome] == opcao %}selected{% endif %}>{{ opcao }}</option>
                             {% endfor %}
                         </select>
                         {% elif adicionados %}
-                        <input name="{{ campo.nome }}" form="{{ formulario }}" value="{{ valores[campo.nome] if valores[campo.nome] is not none else '' }}" style="width: 7rem;">
+                        <input name="{{ campo.nome }}" form="{{ formulario }}" value="{{ valores[campo.nome] if valores[campo.nome] is not none else '' }}" style="width: 100%;">
                         {% elif campo.tipo == 'longo' %}
                         <button type="button" class="btn-secondary js-texto" style="padding: 0.25rem 0.5rem;" {% if not valores[campo.nome] %}disabled{% endif %}>Ver</button>
                         <div class="texto-fonte" hidden>{{ valores[campo.nome] or '' }}</div>
@@ -86,21 +95,45 @@
                     {% endfor %}
                     {% if adicionados %}
                     <td style="white-space: nowrap;">
-                        <button type="submit" class="btn-primary" form="{{ formulario }}" style="padding: 0.25rem 0.5rem;">Salvar</button>
+                        <button type="submit" class="btn-primary" form="{{ formulario }}" style="padding: 0.25rem 0.5rem;" title="Salvar" aria-label="Salvar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;" aria-hidden="true"><path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3"/><rect x="7" y="13" width="10" height="8"/></svg></button>
                         <form method="post" action="{{ url_for('admin.admin_catalogo_restaurar', aba=aba, item_id=item.id) }}" style="display: inline;">
-                            <button type="submit" class="btn-secondary" style="padding: 0.25rem 0.5rem;">Restaurar padrão</button>
+                            <input type="hidden" name="q" value="{{ busca }}">
+                            <button type="submit" class="btn-secondary" style="padding: 0.25rem 0.5rem;" title="Restaurar padrão" aria-label="Restaurar padrão"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/></svg></button>
                         </form>
                     </td>
+                    {% else %}
+                    <td></td>
                     {% endif %}
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="{{ spec.tela|length + (2 if adicionados else 1) }}">Nada nesta lista.</td>
+                    <td colspan="{{ spec.tela|length + 2 }}">Nada nesta lista.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <h2 style="margin-top: 2rem;">Acrescentar só nesta campanha</h2>
+    <form method="post" action="{{ url_for('admin.admin_catalogo_novo', aba=aba) }}" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end;">
+        {% for campo in spec.campos %}
+        <label>
+            {{ campo.rotulo }}
+            {% if campo.opcoes %}
+            <select name="{{ campo.nome }}" style="display: block; padding: 0.4rem;">
+                {% for opcao in campo.opcoes %}
+                <option value="{{ opcao }}">{{ opcao }}</option>
+                {% endfor %}
+            </select>
+            {% elif campo.tipo == 'numero' %}
+            <input name="{{ campo.nome }}" inputmode="decimal" style="display: block; padding: 0.4rem;">
+            {% else %}
+            <input name="{{ campo.nome }}" style="display: block; padding: 0.4rem;">
+            {% endif %}
+        </label>
+        {% endfor %}
+        <button type="submit" class="btn-primary">Acrescentar</button>
+    </form>
 </div>
 
 <div id="popup-texto">
@@ -169,7 +202,7 @@
     document.querySelectorAll('.js-texto').forEach(function (botao) {
         botao.addEventListener('click', function () {
             origem = botao.parentElement.querySelector('.texto-fonte');
-            titulo.textContent = botao.textContent === 'Ver' ? 'Texto' : botao.textContent;
+            titulo.textContent = botao.title || (botao.textContent === 'Ver' ? 'Texto' : botao.textContent);
             campo.value = origem ? (origem.value !== undefined ? origem.value : origem.textContent) : '';
             campo.readOnly = !origem || origem.tagName !== 'TEXTAREA';
             popup.classList.add('aberto');

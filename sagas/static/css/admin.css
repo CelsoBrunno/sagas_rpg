@@ -1,0 +1,57 @@
+/* Painel do mestre: cores só por variáveis, para seguir o tema da campanha */
+
+.admin-aviso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-aviso .btn-primary {
+  padding: 0.5rem 1.25rem;
+}
+
+.admin-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.admin-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0;
+  border-top: 4px solid var(--cor-primaria-azul);
+}
+
+.admin-card h3 {
+  margin-bottom: 0.25rem;
+}
+
+.admin-card-alerta {
+  border-top-color: var(--cor-destaque-amarelo);
+}
+
+.admin-card-numero {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.admin-card-texto {
+  margin: 0;
+}
+
+.admin-card a {
+  color: var(--cor-primaria-azul-claro);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.admin-card a:hover {
+  color: var(--cor-texto-branco);
+}

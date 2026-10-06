@@ -7,7 +7,7 @@
     <h1>Catálogo de Magias</h1>
     <p style="color: var(--cor-texto-claro);">
         As {{ magias|length }} magias do GURPS 4ª edição, Módulo Básico. Os textos aqui são resumos;
-        a regra completa está no livro, na página indicada. (MD) = IQ/Muito Difícil; as demais são IQ/Difícil.
+        a regra completa está no livro. (MD) = IQ/Muito Difícil; as demais são IQ/Difícil.
     </p>
 
     {% if not magias %}
@@ -29,7 +29,6 @@
                         <th>Tempo</th>
                         <th>Duração</th>
                         <th>Pré-requisitos</th>
-                        <th>Pág.</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,7 +43,6 @@
                         <td>{{ m.tempo }}</td>
                         <td>{{ m.duracao }}</td>
                         <td>{{ m.pre_requisitos }}</td>
-                        <td>{{ m.pagina or '-' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

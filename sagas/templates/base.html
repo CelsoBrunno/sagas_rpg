@@ -10,6 +10,7 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -51,7 +52,8 @@
                 
                 {% if session.get('user_id') %}
                 <li class="nav-item">
-                    <a href="{{ url_for('campanhas.listar_campanhas') }}" class="nav-link nav-campanha">
+                    <a href="{{ url_for('campanhas.listar_campanhas') }}" class="nav-link nav-campanha"
+                       {% if campanha_ativa %}title="{{ campanha_ativa.nome_campanha }}"{% endif %}>
                         {% if campanha_ativa %}Campanha: {{ campanha_ativa.nome_campanha }}{% else %}Escolher campanha{% endif %}
                     </a>
                 </li>

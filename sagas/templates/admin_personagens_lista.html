@@ -5,18 +5,25 @@
 {% block content %}
 <div class="container">
     <h1>Gerenciar Personagens</h1>
+    {% set filtro_campanha = campanha_filtro.id if campanha_filtro else None %}
+    {% if campanha_filtro %}
+    <p>
+        Só personagens de <strong>{{ campanha_filtro.nome_campanha }}</strong>.
+        <a href="{{ url_for('admin.admin_personagens_lista', status=status_filter) }}" style="color: var(--cor-primaria-azul-claro);">Ver todas as campanhas</a>
+    </p>
+    {% endif %}
     
     <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
-        <a href="{{ url_for('admin.admin_personagens_lista', status='all') }}" 
+        <a href="{{ url_for('admin.admin_personagens_lista', status='all', campanha=filtro_campanha) }}" 
            class="btn-secondary {% if status_filter == 'all' %}active{% endif %}" 
            style="padding: 0.5rem 1rem;">Todos</a>
-        <a href="{{ url_for('admin.admin_personagens_lista', status='pendente') }}" 
+        <a href="{{ url_for('admin.admin_personagens_lista', status='pendente', campanha=filtro_campanha) }}" 
            class="btn-secondary {% if status_filter == 'pendente' %}active{% endif %}" 
            style="padding: 0.5rem 1rem;">Pendentes</a>
-        <a href="{{ url_for('admin.admin_personagens_lista', status='aprovado') }}" 
+        <a href="{{ url_for('admin.admin_personagens_lista', status='aprovado', campanha=filtro_campanha) }}" 
            class="btn-secondary {% if status_filter == 'aprovado' %}active{% endif %}" 
            style="padding: 0.5rem 1rem;">Aprovados</a>
-        <a href="{{ url_for('admin.admin_personagens_lista', status='rejeitado') }}" 
+        <a href="{{ url_for('admin.admin_personagens_lista', status='rejeitado', campanha=filtro_campanha) }}" 
            class="btn-secondary {% if status_filter == 'rejeitado' %}active{% endif %}" 
            style="padding: 0.5rem 1rem;">Rejeitados</a>
     </div>

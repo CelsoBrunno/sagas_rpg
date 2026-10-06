@@ -2,50 +2,69 @@
 
 {% block title %}Dashboard Admin{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <h1>⚙️ Dashboard Administrativo</h1>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-        <div class="card" style="background: var(--cor-primaria-azul); color: white; padding: 1.5rem; border-radius: 8px;">
+
+    {% if campanha %}
+    <p>Campanha ativa: <strong>{{ campanha.nome_campanha }}</strong>. Personagens e pendentes contam só esta campanha.</p>
+    {% else %}
+    <div class="alert alert-info admin-aviso">
+        <span>Nenhuma campanha escolhida. Personagens, pendentes e catálogos dependem dela.</span>
+        <a href="{{ url_for('campanhas.listar_campanhas') }}" class="btn-primary">Escolher campanha</a>
+    </div>
+    {% endif %}
+
+    <div class="admin-cards">
+        <div class="card admin-card">
             <h3>Personagens</h3>
-            <p style="font-size: 2rem; margin: 0.5rem 0;">{{ total_personagens }}</p>
-            <a href="{{ url_for('admin.admin_personagens_lista') }}" style="color: white; text-decoration: underline;">Ver todos</a>
+            {% if campanha %}
+            <p class="admin-card-numero">{{ total_personagens }}</p>
+            <a href="{{ url_for('admin.admin_personagens_lista', campanha=campanha.id) }}">Ver todos</a>
+            {% else %}
+            <p class="admin-card-numero">—</p>
+            {% endif %}
         </div>
-        
-        <div class="card" style="background: #ffc107; color: #333; padding: 1.5rem; border-radius: 8px;">
+
+        <div class="card admin-card {% if personagens_pendentes %}admin-card-alerta{% endif %}">
             <h3>Pendentes</h3>
-            <p style="font-size: 2rem; margin: 0.5rem 0;">{{ personagens_pendentes }}</p>
-            <a href="{{ url_for('admin.admin_personagens_lista', status='pendente') }}" style="color: #333; text-decoration: underline;">Aprovar</a>
+            {% if campanha %}
+            <p class="admin-card-numero">{{ personagens_pendentes }}</p>
+            <a href="{{ url_for('admin.admin_personagens_lista', status='pendente', campanha=campanha.id) }}">Aprovar</a>
+            {% else %}
+            <p class="admin-card-numero">—</p>
+            {% endif %}
         </div>
-        
-        <div class="card" style="background: #28a745; color: white; padding: 1.5rem; border-radius: 8px;">
+
+        <div class="card admin-card">
             <h3>Usuários</h3>
-            <p style="font-size: 2rem; margin: 0.5rem 0;">{{ total_usuarios }}</p>
-            <a href="{{ url_for('admin.admin_usuarios_lista') }}" style="color: white; text-decoration: underline;">Gerenciar</a>
+            <p class="admin-card-numero">{{ total_usuarios }}</p>
+            <a href="{{ url_for('admin.admin_usuarios_lista') }}">Gerenciar usuários e pontos</a>
         </div>
-        
-        <div class="card" style="background: #ffc107; color: #333; padding: 1.5rem; border-radius: 8px;">
-            <h3>💰 Pontos</h3>
-            <p style="font-size: 1.2rem; margin: 0.5rem 0;">Gerenciar Pontos</p>
-            <a href="{{ url_for('admin.admin_usuarios_lista') }}" style="color: #333; text-decoration: underline; font-weight: bold;">Conceder Pontos</a>
-        </div>
-        
-        <div class="card" style="background: #17a2b8; color: white; padding: 1.5rem; border-radius: 8px;">
+
+        <div class="card admin-card">
             <h3>Campanhas</h3>
-            <p style="font-size: 2rem; margin: 0.5rem 0;">{{ total_campanhas }}</p>
-            <a href="{{ url_for('admin.admin_campanhas_lista') }}" style="color: white; text-decoration: underline;">Gerenciar</a>
+            <p class="admin-card-numero">{{ total_campanhas }}</p>
+            <a href="{{ url_for('admin.admin_campanhas_lista') }}">Gerenciar</a>
+        </div>
+
+        <div class="card admin-card">
+            <h3>Sessões</h3>
+            <p class="admin-card-texto">Pontos ganhos em jogo</p>
+            <a href="{{ url_for('admin.admin_sessoes_form') }}">Distribuir pontos</a>
+            <a href="{{ url_for('admin.admin_sessoes_historico') }}">Histórico</a>
         </div>
     </div>
-    
+
     <div style="margin-top: 3rem;">
         <h2>Catálogos</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-            <a href="{{ url_for('admin.admin_acervo') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
-                Acervo da campanha
-            </a>
             <a href="{{ url_for('admin.admin_catalogo') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
-                Catálogo
+                Catálogo da campanha
             </a>
             <a href="{{ url_for('admin.admin_racas_lista') }}" class="btn-primary" style="display: block; text-align: center; padding: 1rem;">
                 Raças
@@ -57,4 +76,3 @@
     </div>
 </div>
 {% endblock %}
-
