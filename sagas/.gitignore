@@ -67,8 +67,7 @@ TODO.txt
 NOTES.txt
 
 # Material protegido por copyright (GURPS / Steve Jackson Games)
-anexos/*.pdf
-anexos/**/*.pdf
+
 
 # Script local com senhas de jogadores
 scripts/criar_usuarios.py
